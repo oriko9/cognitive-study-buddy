@@ -66,6 +66,15 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
     both proceed. The global cap must be enforced atomically (a single
     conditional UPDATE or equivalent), and specification.md must specify that,
     not leave it to the implementation.
+- **Accepted risks:**
+  - The Gemini API key in use was exposed in a chat transcript and was later
+    pasted into `.env.example` (tracked) instead of `.env.local` (ignored),
+    where it sat one `git add` from a push. It was caught by review before any
+    commit; no commit in the repository's history contains key material.
+    Decision, 2026-08-31: the key is not rotated. The deployment is short-lived
+    and exists for submission and grading, the free-tier quota bounds the
+    financial exposure at zero, and the global cap in N10 bounds the volume.
+    Accepted knowingly rather than overlooked.
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
 - **Observed:**
