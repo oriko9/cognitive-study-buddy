@@ -185,3 +185,26 @@ here, criterion N2 in `specs/framing.md`. Every other mention cites the
 criterion by name instead of restating the number, so a reader who finds a
 number without a citation knows it is unverified. Updating a value means
 updating one line, not remembering every place it was copied to.
+
+---
+
+## L9 — A pipe throws away the exit code you needed
+
+**When:** Turn 1, during the scaffold install.
+
+**What happened:** The dependency install was run as `npm install ... | tail -5`
+to keep the output short. The install failed on a peer-dependency conflict, but
+the pipeline reported exit 0, because a shell pipeline returns the status of its
+last command and `tail` had succeeded at printing the failure. The step was
+briefly believed to have worked. Re-running without the pipe showed an ERESOLVE
+error that had been there all along.
+
+**What it cost:** One re-run, because it was noticed immediately. Left
+unnoticed, the next command would have failed against a half-installed tree, and
+the visible error would have pointed somewhere unrelated to the real cause.
+
+**The rule now:** Never pipe a command whose exit status matters. Redirect its
+full output to a file and read the file, or check the status explicitly. A
+truncating filter is for output a human is reading, never for a step something
+else depends on - and a step that reports success because a filter succeeded is
+the same defect class as a test that asserts nothing.
