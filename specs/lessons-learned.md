@@ -245,3 +245,28 @@ list every criterion, gate and test that names it or depends on it, and decide
 about that whole set. A cut that quietly takes verification with it is the most
 expensive kind, because what is lost is exactly the thing that would have
 noticed.
+
+---
+
+## L11 — Two filenames one word apart, one of them protected
+
+**When:** Turn 1, filling in the local environment file.
+
+**What happened:** The repository holds `.env.example`, which is tracked and
+pushed, and `.env.local`, which is gitignored. They differ by one word and both
+read as "the file with the variables in it". Real values - including the
+provider key - were typed into the tracked one. Nothing was committed; a review
+of the working tree caught it. Had a `git add -A` run first, the key would have
+been published to GitHub.
+
+**What it cost:** Nothing, by a margin of one command. The value at risk was a
+provider key and the credibility of a repository whose own criterion N1 forbids
+exactly this.
+
+**The rule now:** L4 said a secret must not enter a command someone might copy.
+It did not cover a secret typed into the wrong file, because nothing was copied.
+The general rule underneath both: a secret must never be one ordinary action
+away from publication. Where two files differ by a word and only one is
+protected, the protection is a coin flip - so the gate cannot only inspect the
+build output, it must inspect what the repository is about to contain. N1 is
+widened accordingly in the next commit.
