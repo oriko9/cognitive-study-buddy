@@ -53,5 +53,5 @@ politeness. Replace each italic hint with the actual evidence.
 
 ## Cost
 
-- Model calls per full cycle after this change: <!-- must stay ≤ 8 -->
+- Model calls per full cycle after this change: <!-- must stay ≤ 3, per criterion N2 -->
 - Anything here that could loop, retry unboundedly, or re-send the corpus?
