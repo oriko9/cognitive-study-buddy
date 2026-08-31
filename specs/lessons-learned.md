@@ -186,6 +186,17 @@ criterion by name instead of restating the number, so a reader who finds a
 number without a citation knows it is unverified. Updating a value means
 updating one line, not remembering every place it was copied to.
 
+**Amended 2026-08-31, same day.** The rule as written was not enough. Adding
+criterion N10 invalidated three enumerated ranges reading `N1–N9`, one of them
+the "Turn 1 is done when" clause - so a criterion added to close a security hole
+was, for two commits, outside the Definition of Done. The rule said a governing
+figure lives in one place; it did not say what to do when the figure is a
+*range* that summarises a set. Correcting the three copies would have worked
+until the eleventh criterion. The stronger rule: do not restate a set by
+enumerating it. Refer to the set. A reference cannot fall out of date, and a
+lesson that has to be re-applied by hand every time is a lesson that has not yet
+been learned.
+
 ---
 
 ## L9 — A pipe throws away the exit code you needed
