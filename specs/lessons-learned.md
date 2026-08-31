@@ -160,3 +160,28 @@ Git: rewriting pushed history is still forbidden. This exception was bounded
 (private repo, no collaborators, no third party had pulled) and it is written
 down. An exception that is documented is a decision; an exception that is silent
 is the thing the rule was written to prevent.
+
+---
+
+## L8 — A number repeated in two files is a number that will drift
+
+**When:** Turn 0, immediately after the first seven commits landed.
+
+**What happened:** The measured quota cut the per-cycle model budget from eight
+calls to three. Criterion N2 and `CLAUDE.md` were updated; the pull-request
+template was not. The gate whose whole purpose is to hold the budget was
+therefore checking every future change against the number the measurement had
+already overturned - and it would have passed a change that tripled the real
+cost. The same shape of error occurred twice more the same day: a key-format
+string corrected in one place and left stale in another, and a step list updated
+in the runbook while its own summary still named the old file count.
+
+**What it cost:** Nothing this time, because a review caught it before any code
+depended on it. The cost of the general pattern is a gate that reports green
+while enforcing a retired rule, which is worse than no gate at all.
+
+**The rule now:** A figure that governs behaviour lives in exactly one place -
+here, criterion N2 in `specs/framing.md`. Every other mention cites the
+criterion by name instead of restating the number, so a reader who finds a
+number without a citation knows it is unverified. Updating a value means
+updating one line, not remembering every place it was copied to.
