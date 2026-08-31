@@ -58,6 +58,9 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   - A CI grep gate enforcing L8: a figure that governs behaviour must appear
     once. Cannot exist before the scaffold, so it is locked here and built with
     the rest of the CI gates.
+  - Identity model: Supabase anonymous sign-in rather than Google/GitHub OAuth.
+    Decided 2026-08-31, before any auth code existed. Rejected: no auth at all,
+    which would have silently taken N3 and N4 with it.
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
 - **Observed:**
