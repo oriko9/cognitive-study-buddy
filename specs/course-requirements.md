@@ -50,7 +50,7 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 | 4.2 | Hand-written, not agent-generated | Written and revised by hand; the agent is forbidden to rewrite it | ✅ |
 | 4.3 | Kept small to protect the attention budget | Hard cap stated in the file; currently well under 200 lines | ✅ |
 | 4.4 | Contains build commands, test commands, style conventions, safety rules | `CLAUDE.md` §2, §3, §6, §7 | ✅ |
-| 4.5 | Memory / lessons-learned documents maintained | `specs/lessons-learned.md` — L1–L6, each earned during Turn 0 | ✅ |
+| 4.5 | Memory / lessons-learned documents maintained | `specs/lessons-learned.md` — every entry appended on the day it was earned | ✅ |
 
 ## 5. Verification gates (Module 13)
 

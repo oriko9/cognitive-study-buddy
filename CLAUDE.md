@@ -42,6 +42,7 @@ npm run lint           # eslint
 npm run test           # vitest run
 npm run verify         # typecheck && lint && test — THE GATE
 npm run check:secrets  # build, then fail if a provider key reached dist/
+npm run check:pins     # fail if a moving model alias reached any source file
 ```
 
 **Not available yet.** The Vercel and Supabase CLIs are not installed and
@@ -172,3 +173,8 @@ Then wait for explicit approval.
 After a change, report what changed, whether `npm run verify` passed, and what
 remains. The human supplies judgment and accountability; you supply the explicit
 work. Accountability never transfers.
+
+Report findings; do not stop for approval on each one. If something does not
+block the current task, is not a security problem, and does not make a
+document state something false, append it to "Open items" in the current turn
+of `specs/spiral-log.md` and carry on.
