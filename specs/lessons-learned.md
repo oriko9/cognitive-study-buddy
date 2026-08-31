@@ -137,4 +137,26 @@ spiral, not an embarrassment to hide.
 
 ---
 
-## L7 — _next entry goes here, on the day it is earned_
+## L7 — An interface that mixes modes invites the bypass
+
+**When:** Turn 0, at the first commit.
+
+**What happened:** The setup runbook ran five consecutive terminal steps and
+then, at the commit step, expected a switch into the agent to paste a prompt
+demanding seven atomic commits. The agent was started, read the prompt, prepared
+the tree and correctly paused for approval. The human, carried by the momentum of
+five terminal steps, finished the job by hand with a single `git add .` and a
+generic "Initial commit" — destroying the intent-to-implementation trail the
+prompt existed to create. The history was then rewritten to restore it, in
+knowing violation of the repository's own rule against rewriting pushed history.
+
+**What it cost:** One rewrite of a private, minutes-old, single-author branch,
+plus the honesty tax of recording the exception here rather than hiding it.
+
+**The rule now:** Two rules, one from each half.
+Process: a procedure that changes tool mid-way must say so at the seam and say
+why. An instruction that has to fight the reader's momentum will lose.
+Git: rewriting pushed history is still forbidden. This exception was bounded
+(private repo, no collaborators, no third party had pulled) and it is written
+down. An exception that is documented is a decision; an exception that is silent
+is the thing the rule was written to prevent.
