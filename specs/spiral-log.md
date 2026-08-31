@@ -75,6 +75,12 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
     and exists for submission and grading, the free-tier quota bounds the
     financial exposure at zero, and the global cap in N10 bounds the volume.
     Accepted knowingly rather than overlooked.
+- **Scope decision, 2026-08-31:** the Definition of Done was cut to upload →
+  topic extraction → one open question → graded verdict. Forced by available
+  effort, not by a technical finding. Rejected: keeping the full four-capability
+  scope with zero schedule slack, which risked reaching submission without the
+  third spiral turn — itself a course requirement.
+- **Open items:** _non-blocking findings, swept when the turn closes_
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
 - **Observed:**
