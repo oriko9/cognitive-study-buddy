@@ -31,7 +31,7 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   - `specs/spiral-log.md` — this file
   - `specs/lessons-learned.md` — rules earned, seeded with L1–L3
   - `.github/PULL_REQUEST_TEMPLATE.md` — the five Merge-Readiness pillars, so the check recurs on every PR instead of being remembered once
-- **Commit range:** _fill in after the commits land_
+- **Commit range:** `d8d8aae..57d76ef`
 - **Decisions made and why:**
   - **Scope cut to a narrow core.** Upload → topics → 5-question quiz → weakness map. The staged study plan and worked-example explanations were deliberately deferred to Turns 2 and 3. Rationale: three half-finished capabilities with a tangled history score worse than one capability closed cleanly.
   - **Gemini, not OpenAI.** The free ChatGPT interface exposes no API, and the OpenAI API is billed per token with no free tier. Gemini's free tier is the only option that supports a multi-user deployment at zero cost. Wrapped behind a single `callModel` adapter so the provider can be swapped in one file.
