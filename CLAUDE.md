@@ -30,8 +30,8 @@ the free tier. These numbers are the budget; they are measured, not assumed.
 
 ## 2. Commands
 
-> Some do not exist until the project is scaffolded. **The scaffold commit must
-> update this section in the same commit.** A stale command list here is a defect.
+> **The scaffold must update this section in the same turn.** A stale command
+> list here is a defect.
 
 ```bash
 npm install
@@ -42,6 +42,13 @@ npm run lint           # eslint
 npm run test           # vitest run
 npm run verify         # typecheck && lint && test — THE GATE
 npm run check:secrets  # build, then fail if a provider key reached dist/
+```
+
+**Not available yet.** The Vercel and Supabase CLIs are not installed and
+Supabase is not configured. These commands will fail today. The block shrinks as
+each becomes real.
+
+```bash
 vercel dev             # app + api/ functions together
 supabase start         # local Supabase stack
 supabase db reset      # re-apply migrations from scratch
