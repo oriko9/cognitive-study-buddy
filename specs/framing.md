@@ -61,21 +61,19 @@ corresponding automated check is not part of the DoD.
 | # | Criterion | How it is verified |
 | --- | --- | --- |
 | D1 | A visitor reaches the upload screen with a working identity and zero clicks: the app calls Supabase anonymous sign-in on first load and persists the session. No sign-up, no OAuth, no email/password path exists. | Integration test: a fresh browser context reaches the upload screen and `auth.uid()` is non-null |
-| D2 | A signed-in student uploads a PDF or PPTX of **≤ 30 pages / ≤ 10 MB** and the file is persisted to Supabase Storage under their user id. | Integration test: upload, then read back |
+| D2 | A signed-in student uploads a PDF of **≤ 30 pages / ≤ 10 MB** and the file is persisted to Supabase Storage under their user id. | Integration test: upload, then read back |
 | D3 | Topic extraction returns **between 5 and 15 topics**. Each topic has a non-empty title and at least one source reference (page or slide number) into the uploaded file. | Schema assertion + count assertion |
-| D4 | Quiz generation returns **exactly 5 questions**: 4 multiple-choice (exactly 4 options each, exactly one marked correct) and 1 open-ended. Each question carries the `topic_id` it probes. | Schema assertion on the parsed response |
-| D5 | Multiple-choice answers are scored **without any model call**. | Unit test; assert the LLM adapter is not invoked |
-| D6 | The open answer is evaluated by the model and returns structured JSON: a score in `0..1`, the topic id, and a one-sentence justification. | Schema assertion |
-| D7 | The weakness map ranks every probed topic worst-first with a numeric score, and names at least one topic whenever the student answers anything incorrectly. | Unit test over fixed answer sets |
-| D8 | From first load, upload → quiz → weakness map completes in **≤ 4 clicks**, excluding typing. | Manual click-count, recorded in the turn log |
-| D9 | Source material in **Hebrew or English** produces topics and questions in the same language as the source. | Fixture test with one Hebrew and one English deck |
+| D4 | The app produces **exactly one open-ended question** targeting one extracted topic, carrying that `topic_id`. | Schema assertion on the parsed response |
+| D6 | The open answer is evaluated by the model and returns structured JSON: a score in `0..1`, the topic id, and a one-sentence justification. The one-sentence justification is displayed to the student, not stored only. | Schema assertion |
+| D8 | From first load, upload → question → graded verdict completes in **≤ 3 clicks**, excluding typing. | Manual click-count, recorded in the turn log |
+| D9 | Source material in **Hebrew** produces topics and a question in Hebrew. | Fixture test with a Hebrew deck |
 
 ### Non-functional
 
 | # | Criterion | How it is verified |
 | --- | --- | --- |
 | N1 | The Gemini API key exists **only** as a server-side Vercel environment variable (`GEMINI_API_KEY`, no `VITE_` prefix). No key, and no direct provider call, appears in any client bundle. | `npm run check:secrets` scans `dist/` for **both** key formats — legacy `AIza` and current `AQ.` — plus the literal `GEMINI_API_KEY`; fails the build on a match |
-| N2 | One full cycle (upload → map) costs **≤ 3 model calls**: one topic extraction, one batched generation of all 5 questions, one open-answer evaluation. Enforced in code, not by convention. | Counter assertion in the integration test |
+| N2 | One full cycle (upload → graded verdict) costs **≤ 2 model calls**: one call that extracts topics and produces the open question, one that evaluates the answer. Enforced in code, not by convention. | Counter assertion in the integration test |
 | N3 | A per-user cap of **10 cycles per day** is stored in the database and enforced server-side before any call. Exceeding it returns a typed refusal rendered as a plain "daily limit reached" state — never a blank screen or a generic error. Under anonymous identity a new session is free, so this cap bounds an ordinary user, not a determined one. N10 is the real ceiling. | Integration test that exhausts the quota |
 | N4 | Row Level Security prevents user A from reading user B's corpus, quizzes, or results. Identity is per browser session, so this isolates sessions rather than people — the RLS policy is exercised identically either way. | Integration test with two distinct users |
 | N5 | Malformed model JSON triggers **exactly one** retry; a second failure surfaces a visible, typed error. The app never renders invented content on a failed call. *(Norman's Gulf of Evaluation: failure must look like failure, never a blank or default verdict.)* | Test with a stubbed adapter returning garbage |
@@ -114,6 +112,10 @@ never by quietly building it.
 - Video or audio input
 - Payment, subscription, or per-user billing
 - Persistent accounts of any kind: email/password, OAuth or social sign-in, password recovery, and cross-device continuity. Identity is a per-browser anonymous session; clearing browser data loses that session's material.
+- Multiple-choice questions and deterministic answer scoring
+- A ranked weakness map across topics
+- PPTX input; PDF with a text layer only
+- English-language source material
 - Internationalisation of the UI beyond a single chosen interface language
 
 ---
