@@ -87,7 +87,7 @@ corresponding automated check is not part of the DoD.
 
 ### Turn 1 is done when
 
-All of D1–D9 and N1–N9 pass in CI on `main`, the app is deployed to Vercel, and
+Every criterion in §3 — functional and non-functional — passes in CI on `main`, the app is deployed to Vercel, and
 the turn is recorded in `specs/spiral-log.md` with the commit range it covers.
 
 ---
