@@ -55,13 +55,13 @@ describe('readClientEnv', () => {
 
 describe('readServerEnv', () => {
   it('returns the key when it is present server-side', () => {
-    const result = readServerEnv({ GEMINI_API_KEY: 'AQ.server-side-key' });
+    const result = readServerEnv({ GEMINI_API_KEY: 'test-server-key-value' });
 
-    expect(result).toEqual({ ok: true, data: { geminiApiKey: 'AQ.server-side-key' } });
+    expect(result).toEqual({ ok: true, data: { geminiApiKey: 'test-server-key-value' } });
   });
 
   it('rejects a provider key carrying the VITE_ prefix, which Vite would inline into the bundle', () => {
-    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'AQ.leaked-into-the-client' });
+    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'test-leaked-client-value' });
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
@@ -71,19 +71,19 @@ describe('readServerEnv', () => {
 
   it('rejects the VITE_ prefixed key even when the correct variable is also set', () => {
     const result = readServerEnv({
-      GEMINI_API_KEY: 'AQ.server-side-key',
-      VITE_GEMINI_API_KEY: 'AQ.leaked-into-the-client',
+      GEMINI_API_KEY: 'test-server-key-value',
+      VITE_GEMINI_API_KEY: 'test-leaked-client-value',
     });
 
     expect(result.ok).toBe(false);
   });
 
   it('never echoes the secret value back in the error message', () => {
-    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'AQ.leaked-into-the-client' });
+    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'test-leaked-client-value' });
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
-    expect(result.error).not.toContain('AQ.leaked-into-the-client');
+    expect(result.error).not.toContain('test-leaked-client-value');
   });
 
   it('reports the missing key by name when nothing is set', () => {
