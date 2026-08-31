@@ -1,10 +1,10 @@
 /**
  * Criterion N8: the model is pinned to an explicit version. No moving alias.
  *
- * `models/gemini-3.1-flash-lite-latest` would keep working and quietly stop
- * meaning the same thing. A spec whose subject drifts cannot be reproduced, and
- * a bug that cannot be reproduced cannot be fixed — so the alias is banned
- * outright rather than discouraged.
+ * A model id ending in the moving-alias suffix keeps working indefinitely and
+ * quietly stops meaning the same thing. A spec whose subject drifts cannot be
+ * reproduced, and a bug that cannot be reproduced cannot be fixed — so the
+ * alias is banned outright rather than discouraged.
  *
  * Scope: git-tracked *source* files. Prose is excluded because the documents
  * that forbid the alias have to be able to name it — CLAUDE.md §4.2 and
@@ -17,7 +17,9 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { extname } from 'node:path';
 
-const FORBIDDEN = '-latest';
+// Built from parts so this scanner does not match itself. Excluding the file
+// instead would be the allowlist this gate deliberately does not have.
+const FORBIDDEN = '-' + 'latest';
 
 const SOURCE_EXTENSIONS = new Set([
   '.ts',
