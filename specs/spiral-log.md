@@ -61,6 +61,11 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   - Identity model: Supabase anonymous sign-in rather than Google/GitHub OAuth.
     Decided 2026-08-31, before any auth code existed. Rejected: no auth at all,
     which would have silently taken N3 and N4 with it.
+  - N10's verification as written is sequential and would pass against an
+    implementation with a race: two requests can both read a count of 399 and
+    both proceed. The global cap must be enforced atomically (a single
+    conditional UPDATE or equivalent), and specification.md must specify that,
+    not leave it to the implementation.
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
 - **Observed:**
