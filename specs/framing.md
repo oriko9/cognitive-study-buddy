@@ -40,7 +40,7 @@ their own course material into evidence about what they have not yet understood.
 | Stakeholder | Relationship | What they need from the system |
 | --- | --- | --- |
 | **The student (primary user)** | Uploads material, answers questions, reads the weakness map | Honest, specific feedback fast enough to act on in one sitting |
-| **Other registered students** | Use the same deployment with their own private corpus | Strict data isolation — one student must never read another's material or results |
+| **Other users of the same deployment** | Each browser session is a distinct anonymous user with its own private corpus | Strict data isolation — one student must never read another's material or results |
 | **Course instructor (M. Gorsky)** | Evaluates the repository, not the running app | A legible intent-to-implementation trail: specs before code, atomic commits, real verification gates |
 | **The LLM provider (Google Gemini)** | Runtime dependency, free tier | Bounded call volume; the app must degrade honestly when quota is exhausted, not loop |
 | **The developer (Ori)** | Builds and defends the project | A scope small enough to finish cleanly across three spiral turns |
@@ -60,7 +60,7 @@ corresponding automated check is not part of the DoD.
 
 | # | Criterion | How it is verified |
 | --- | --- | --- |
-| D1 | A visitor signs in with Google or GitHub and reaches the upload screen. No email/password path exists. | Integration test against Supabase Auth |
+| D1 | A visitor reaches the upload screen with a working identity and zero clicks: the app calls Supabase anonymous sign-in on first load and persists the session. No sign-up, no OAuth, no email/password path exists. | Integration test: a fresh browser context reaches the upload screen and `auth.uid()` is non-null |
 | D2 | A signed-in student uploads a PDF or PPTX of **≤ 30 pages / ≤ 10 MB** and the file is persisted to Supabase Storage under their user id. | Integration test: upload, then read back |
 | D3 | Topic extraction returns **between 5 and 15 topics**. Each topic has a non-empty title and at least one source reference (page or slide number) into the uploaded file. | Schema assertion + count assertion |
 | D4 | Quiz generation returns **exactly 5 questions**: 4 multiple-choice (exactly 4 options each, exactly one marked correct) and 1 open-ended. Each question carries the `topic_id` it probes. | Schema assertion on the parsed response |
@@ -112,7 +112,7 @@ never by quietly building it.
 - Corpora larger than 30 pages, and multi-file corpora in a single quiz
 - Video or audio input
 - Payment, subscription, or per-user billing
-- Email/password authentication and password recovery flows
+- Persistent accounts of any kind: email/password, OAuth or social sign-in, password recovery, and cross-device continuity. Identity is a per-browser anonymous session; clearing browser data loses that session's material.
 - Internationalisation of the UI beyond a single chosen interface language
 
 ---
