@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "verify": "npm run typecheck && npm run lint && npm run test",
-    "check:secrets": "npm run build && node scripts/check-secrets.mjs"
+    "check:secrets": "npm run build && node scripts/check-secrets.mjs",
+    "check:pins": "node scripts/check-pins.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

@@ -59,6 +59,8 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 | 5.1 | Explicit gates; agent output is a hypothesis until checked | `CLAUDE.md` §5; `npm run verify` | 🔄 |
 | 5.2 | Gates catch real failures — no test theatre | `CLAUDE.md` §5 lists the risks each test must probe. The secrets gate was corrected twice before it shipped: it scanned only for the legacy `AIza` prefix and would have passed a bundle containing a current `AQ.` key, then scanned only `dist/` and would have passed the L11 near-miss. Proven against three planted failures rather than asserted | 🔄 remaining: the model-failure gates N5 (malformed JSON, one retry) and N6 (timeout) have nothing to test until the adapter exists |
 | 5.5 | N1 has an executable gate, not a convention | `scripts/check-secrets.mjs` via `npm run check:secrets` — scans `dist/` and every git-tracked file for both key formats and for an assigned `GEMINI_API_KEY`; no allowlist | ✅ |
+| 5.6 | N8 has an executable gate, not a convention | `scripts/check-pins.mjs` via `npm run check:pins` — fails on `-latest` in any tracked source file; proven against a planted alias | ✅ |
+| 5.7 | Both gates run automatically, not only when someone remembers | — | ⬜ remaining: neither `check:secrets` nor `check:pins` is part of `npm run verify` or of CI. Until they are, N1 and N8 are enforced by a command someone has to choose to run |
 | 5.3 | Tests, type checks, linters, review | `npm run verify` + CI + the PR template | 🔄 |
 | 5.4 | Merge-ready at the end | `.github/PULL_REQUEST_TEMPLATE.md` — five pillars | 🔄 |
 
