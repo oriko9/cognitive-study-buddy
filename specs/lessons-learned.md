@@ -208,3 +208,29 @@ full output to a file and read the file, or check the status explicitly. A
 truncating filter is for output a human is reading, never for a step something
 else depends on - and a step that reports success because a filter succeeded is
 the same defect class as a test that asserts nothing.
+
+---
+
+## L10 — Before cutting a requirement, list what depends on it
+
+**When:** Turn 1, deciding whether to keep sign-in.
+
+**What happened:** Social sign-in looked like pure setup cost - two OAuth
+applications, a consent screen, redirect URLs - for an app that only needs to
+run for grading. The instinct was to remove authentication entirely. Listing the
+dependents first showed that two criteria unrelated to login rode on it: N3, the
+per-user daily cap, has no "per user" without an identity, and N4, the row-level
+isolation test, has nothing to isolate. Removing sign-in would have deleted two
+verification gates as a side effect, neither of them mentioned in the decision.
+Anonymous sign-in issues a real user id, so the setup cost was removed while
+both gates survived untouched.
+
+**What it cost:** Nothing, because the dependency check happened before the cut.
+The cost of skipping it would have been two gates disappearing silently, and a
+provider key sitting behind an unauthenticated endpoint.
+
+**The rule now:** A requirement is never removed on its own description. First
+list every criterion, gate and test that names it or depends on it, and decide
+about that whole set. A cut that quietly takes verification with it is the most
+expensive kind, because what is lost is exactly the thing that would have
+noticed.
