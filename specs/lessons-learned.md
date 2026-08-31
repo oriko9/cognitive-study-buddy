@@ -1,0 +1,140 @@
+# Lessons Learned
+
+Rules earned the hard way. One entry per lesson, appended **when it happens** —
+a backfilled entry teaches nothing and reads as decoration.
+
+An entry belongs here when a mistake, a wrong assumption, or a failed agent run
+changed how we work. Not a changelog: a changelog records what happened, this
+records what we now do differently. When a lesson hardens into a rule, it moves
+into `CLAUDE.md` and the entry here says so.
+
+Format: **what happened → what it cost → the rule now.**
+
+---
+
+## L1 — A free consumer product is not a free API
+
+**When:** Turn 0, before any code.
+
+**What happened:** The provider for the runtime model was chosen as "free
+ChatGPT" on the strength of everyday use. The free ChatGPT interface exposes no
+API at all, and the OpenAI API is a separate, metered product requiring billing.
+Had this reached the specification, it would have surfaced only at deployment.
+
+**What it cost:** Nothing — caught during framing. Had it survived into Turn 1,
+it would have invalidated the architecture section and a day of work.
+
+**The rule now:** Provider access is verified against the provider's own console
+before it enters a spec — an issued key and an observed quota, not a
+recollection. Assumptions about cost and access are load-bearing and get checked
+like any other load-bearing claim.
+
+---
+
+## L2 — Two deploy pipelines mean two places a key can leak
+
+**When:** Turn 0, when hosting moved from Netlify to Vercel.
+
+**What happened:** The initial design put the model proxy in Supabase Edge
+Functions while the frontend deployed to Vercel. That is two dashboards, two
+secret stores, two deploy paths, and two mental models — for one HTTP call.
+
+**What it cost:** Nothing yet. The cost would have been a recurring tax on every
+future change, and a second place to misconfigure a secret.
+
+**The rule now:** The model proxy lives in `api/` on Vercel, alongside the app it
+serves. Supabase keeps Auth, Postgres and Storage. One deploy pipeline, one
+environment-variable surface. Fewer moving parts is a security property, not
+only a convenience.
+
+---
+
+## L3 — A decision that is not written down reads as drift
+
+**When:** Turn 0, at the Netlify → Vercel change.
+
+**What happened:** The course brief named Netlify; Vercel was chosen instead
+because the account already existed. A reader of the repository would see the
+brief say one thing and the code say another, with no way to tell a reasoned
+choice from carelessness.
+
+**What it cost:** Nothing, once recorded. Unrecorded, it looks exactly like the
+retrofitted history the grading explicitly penalises.
+
+**The rule now:** Any deviation from the brief is recorded in
+`specs/spiral-log.md` with the reason and the rejected alternative, in the turn
+where it happens. The trail must let a reader reconstruct the judgment, not just
+the outcome.
+
+---
+
+## L4 — A secret inside a command is a secret you will paste somewhere
+
+**When:** Turn 0, during provider setup.
+
+**What happened:** A provider key was pasted into a chat while asking for help,
+then regenerated, then the replacement was pasted into the same chat inside a
+shell command that had failed. The command needed sharing; the key came along
+with it. Two keys had to be revoked in one afternoon.
+
+**What it cost:** Two rotations and the time to notice. Nothing reached the
+repository, and nothing reached production — but only because no code existed
+yet to reach.
+
+**The rule now:** A secret never appears inside a command anyone might copy. It
+goes into an environment variable first, and the command references the
+variable. Debugging then means sharing a command that reads `%GKEY%` and output
+that contains no key at all. "Be careful" is not a control; making the mistake
+impossible to make is.
+
+---
+
+## L5 — Verify the transport before designing around the provider
+
+**When:** Turn 0, before the adapter existed.
+
+**What happened:** Public reports said the current `AQ.`-format Gemini keys fail
+against the REST endpoint, which looked like grounds to change provider. A
+five-minute call showed the key works — but only when sent as an
+`x-goog-api-key` **header**. The `?key=` query-parameter form, which most older
+examples use, is what stopped working.
+
+**What it cost:** Five minutes. Had the adapter been written first against the
+query-parameter form, it would have cost a day of debugging in the middle of the
+build, and possibly an unnecessary provider migration.
+
+**The rule now:** Before an external dependency enters the architecture, make
+one real call against it and read the actual response. Reports of breakage
+describe *someone's* configuration, not necessarily ours. The smoke call is the
+cheapest experiment available and it runs first.
+
+---
+
+## L6 — Measure the budget before optimising for speed
+
+**When:** Turn 0, on reading the real quota dashboard.
+
+**What happened:** `CLAUDE.md` instructed the agent to parallelise independent
+model calls, and the quiz design generated each question in its own call — a
+sound instinct for latency. The measured free-tier quota then showed 15 requests
+per minute, and 20 per day on the model originally chosen. Under that ceiling,
+fanning out five calls buys a few seconds of wall-clock and spends a quarter of
+the daily budget. The rule was inverted: batch all five questions into one call.
+Cost per cycle fell from 8 calls to 3, and switching to
+`gemini-3.1-flash-lite` (500 RPD) turned two viable cycles per day into
+roughly 166.
+
+**What it cost:** Nothing, because it was measured before code. Discovered in
+week two, it would have meant reworking the adapter, the tests and the spec at
+once.
+
+**The rule now:** The economic constraint is read from the provider's own
+dashboard before any performance decision, and the numbers go into the spec as
+figures, not adjectives. Latency optimisation that ignores the request budget is
+not optimisation. When a measurement contradicts a written rule, the rule
+changes and the reversal is recorded — that reversal is the evidence of a
+spiral, not an embarrassment to hide.
+
+---
+
+## L7 — _next entry goes here, on the day it is earned_
