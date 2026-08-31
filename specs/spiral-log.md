@@ -20,7 +20,7 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
 
 ---
 
-## Turn 0 — Framing (in progress)
+## Turn 0 — Framing (closed 2026-08-31)
 
 - **Date:** 2026-08-31
 - **Module beat:** M6 (problem framing) · M11 (context engineering) · M16 (merge-readiness, as a template)
@@ -31,7 +31,9 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   - `specs/spiral-log.md` — this file
   - `specs/lessons-learned.md` — rules earned, seeded with L1–L3
   - `.github/PULL_REQUEST_TEMPLATE.md` — the five Merge-Readiness pillars, so the check recurs on every PR instead of being remembered once
-- **Commit range:** `d8d8aae..57d76ef`
+- **Commit range:** `d8d8aae..d84adcc` (the commit that records this range
+  falls outside it by necessity). Convention: the range is written when the
+  turn closes, not while it is open.
 - **Decisions made and why:**
   - **Scope cut to a narrow core.** Upload → topics → 5-question quiz → weakness map. The staged study plan and worked-example explanations were deliberately deferred to Turns 2 and 3. Rationale: three half-finished capabilities with a tangled history score worse than one capability closed cleanly.
   - **Gemini, not OpenAI.** The free ChatGPT interface exposes no API, and the OpenAI API is billed per token with no free tier. Gemini's free tier is the only option that supports a multi-user deployment at zero cost. Wrapped behind a single `callModel` adapter so the provider can be swapped in one file.
