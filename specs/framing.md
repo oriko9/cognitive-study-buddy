@@ -67,7 +67,7 @@ corresponding automated check is not part of the DoD.
 | D5 | Multiple-choice answers are scored **without any model call**. | Unit test; assert the LLM adapter is not invoked |
 | D6 | The open answer is evaluated by the model and returns structured JSON: a score in `0..1`, the topic id, and a one-sentence justification. | Schema assertion |
 | D7 | The weakness map ranks every probed topic worst-first with a numeric score, and names at least one topic whenever the student answers anything incorrectly. | Unit test over fixed answer sets |
-| D8 | From the post-login screen, upload → quiz → weakness map completes in **≤ 4 clicks**, excluding typing. | Manual click-count, recorded in the turn log |
+| D8 | From first load, upload → quiz → weakness map completes in **≤ 4 clicks**, excluding typing. | Manual click-count, recorded in the turn log |
 | D9 | Source material in **Hebrew or English** produces topics and questions in the same language as the source. | Fixture test with one Hebrew and one English deck |
 
 ### Non-functional
@@ -77,7 +77,7 @@ corresponding automated check is not part of the DoD.
 | N1 | The Gemini API key exists **only** as a server-side Vercel environment variable (`GEMINI_API_KEY`, no `VITE_` prefix). No key, and no direct provider call, appears in any client bundle. | `npm run check:secrets` scans `dist/` for **both** key formats — legacy `AIza` and current `AQ.` — plus the literal `GEMINI_API_KEY`; fails the build on a match |
 | N2 | One full cycle (upload → map) costs **≤ 3 model calls**: one topic extraction, one batched generation of all 5 questions, one open-answer evaluation. Enforced in code, not by convention. | Counter assertion in the integration test |
 | N3 | A per-user cap of **10 cycles per day** is stored in the database and enforced server-side before any call. Exceeding it returns a typed refusal rendered as a plain "daily limit reached" state — never a blank screen or a generic error. | Integration test that exhausts the quota |
-| N4 | Row Level Security prevents student A from reading student B's corpus, quizzes, or results. | Integration test with two distinct users |
+| N4 | Row Level Security prevents user A from reading user B's corpus, quizzes, or results. Identity is per browser session, so this isolates sessions rather than people — the RLS policy is exercised identically either way. | Integration test with two distinct users |
 | N5 | Malformed model JSON triggers **exactly one** retry; a second failure surfaces a visible, typed error. The app never renders invented content on a failed call. *(Norman's Gulf of Evaluation: failure must look like failure, never a blank or default verdict.)* | Test with a stubbed adapter returning garbage |
 | N6 | A model timeout is bounded and surfaces as a typed error. *(Lufthansa 2904: a specification written only for the normal case fails in the storm. The abnormal path is specified, not assumed.)* | Test with a stubbed adapter that hangs |
 | N7 | `npm run verify` passes: typecheck, lint, and the full test suite. | CI on every push |

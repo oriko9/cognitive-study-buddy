@@ -19,6 +19,7 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 | 1.2 | Stakeholder list — users, dependants, affected parties | `specs/framing.md` §2 | ✅ |
 | 1.3 | Definition of Done, testable, not arguable | `specs/framing.md` §3 — D1–D9, N1–N9, each with a named verification | ✅ |
 | 1.4 | Out-of-scope list naming what a reasonable person would expect | `specs/framing.md` §4 | ✅ |
+| 1.5 | Identity model stated, with its accepted cost named rather than discovered | `specs/framing.md` §3 D1 (Supabase anonymous sign-in) and §4 (no persistent accounts, no cross-device continuity) | ✅ |
 
 ## 2. Specification (Module 10)
 

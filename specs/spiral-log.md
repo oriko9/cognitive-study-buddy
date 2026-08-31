@@ -53,7 +53,7 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
 ## Turn 1 — Build the narrow core _(planned 2026-09-01 → 2026-09-05)_
 
 - **Module beat:** M10 (specification) · M9 (economics) · M13 (verification gates)
-- **Goal:** A signed-in student uploads a deck and receives a ranked weakness map. D1–D9 and N1–N9 green in CI.
+- **Goal:** A visitor uploads a deck and receives a ranked weakness map. D1–D9 and N1–N9 green in CI.
 - **To lock before acting:** `specs/specification.md` — Knuth's five criteria, the five required parts, the 3-call budget, and the prompting strategy for each of the three calls.
   - A CI grep gate enforcing L8: a figure that governs behaviour must appear
     once. Cannot exist before the scaffold, so it is locked here and built with
