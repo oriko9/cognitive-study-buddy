@@ -80,6 +80,28 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   effort, not by a technical finding. Rejected: keeping the full four-capability
   scope with zero schedule slack, which risked reaching submission without the
   third spiral turn — itself a course requirement.
+- **Scope cut 2026-09-01:** Supabase is removed from the project entirely, and
+  with it every criterion that depended on it — D1 (anonymous identity), the
+  storage half of D2, N3 (per-user cap in the database), N4 (RLS isolation) and
+  N10 (global cap in the database). The app becomes a single page that holds
+  nothing: the PDF is read in the browser, the text never leaves the tab except
+  as one model call, and no state survives a reload. N2 falls to exactly one
+  call per cycle. N11 replaces N3 and N10 with a `localStorage` counter that
+  bounds ordinary use and is trivially bypassed, which the criterion says in its
+  own text rather than leaving to be discovered.
+  Forced by schedule, not by a finding. Nothing about Supabase failed; there was
+  no measurement, no broken integration, no technical discovery. There was not
+  enough remaining effort to stand up auth, storage, a schema, RLS policies and
+  two server-side counters *and* still run Turns 2 and 3.
+  **Rejected:** keeping Supabase and reaching submission with one spiral turn
+  instead of three. That trades three verification criteria for a course
+  requirement, and the requirement is the larger loss — a project with real RLS
+  and one turn demonstrates less than a smaller project that visibly learned
+  three times.
+  **Cost, named:** N3, N4 and N10 were among the strongest evidence here, and
+  N4 in particular is gone with nothing replacing it — there is no isolation to
+  test when there is no data and no user. This is a genuine reduction in what
+  the repository proves, not a reorganisation.
 - **Open items:** _non-blocking findings, swept when the turn closes_
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_

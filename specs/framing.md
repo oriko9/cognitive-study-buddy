@@ -56,16 +56,21 @@ the uploading student and are never shared or used for training.
 Every criterion is countable or mechanically checkable. A criterion with no
 corresponding automated check is not part of the DoD.
 
+**Numbering gaps are intentional.** D1, D5, D7, N3, N4 and N10 were withdrawn as
+scope was cut; the survivors are not renumbered. A criterion id is a reference
+used in commit messages, in `specs/course-requirements.md` and in the spiral
+log, and renumbering would silently invalidate every citation already written.
+A gap means a criterion was withdrawn — the reason is in §4.
+
 ### Functional
 
 | # | Criterion | How it is verified |
 | --- | --- | --- |
-| D1 | A visitor reaches the upload screen with a working identity and zero clicks: the app calls Supabase anonymous sign-in on first load and persists the session. No sign-up, no OAuth, no email/password path exists. | Integration test: a fresh browser context reaches the upload screen and `auth.uid()` is non-null |
-| D2 | A signed-in student uploads a PDF of **≤ 30 pages / ≤ 10 MB** and the file is persisted to Supabase Storage under their user id. | Integration test: upload, then read back |
-| D3 | Topic extraction returns **between 5 and 15 topics**. Each topic has a non-empty title and at least one source reference (page or slide number) into the uploaded file. | Schema assertion + count assertion |
+| D2 | The student selects a PDF of **≤ 30 pages / ≤ 10 MB** and its text is extracted **in the browser**. Nothing is uploaded, transmitted, or persisted anywhere. | Unit test on the extraction module against a committed fixture PDF |
+| D3 | Topic extraction returns **between 5 and 15 topics**. Each topic has a non-empty title and at least one source reference (page number) into the source PDF. | Schema assertion + count assertion |
 | D4 | The app produces **exactly one open-ended question** targeting one extracted topic, carrying that `topic_id`. | Schema assertion on the parsed response |
 | D6 | The open answer is evaluated by the model and returns structured JSON: a score in `0..1`, the topic id, and a one-sentence justification. The one-sentence justification is displayed to the student, not stored only. | Schema assertion |
-| D8 | From first load, upload → question → graded verdict completes in **≤ 3 clicks**, excluding typing. | Manual click-count, recorded in the turn log |
+| D8 | From first load, select → question → graded verdict completes in **≤ 3 clicks**, excluding typing. | Manual click-count, recorded in the turn log |
 | D9 | Source material in **Hebrew** produces topics and a question in Hebrew. | Fixture test with a Hebrew deck |
 
 ### Non-functional
@@ -73,15 +78,12 @@ corresponding automated check is not part of the DoD.
 | # | Criterion | How it is verified |
 | --- | --- | --- |
 | N1 | The Gemini API key exists **only** as a server-side Vercel environment variable (`GEMINI_API_KEY`, no `VITE_` prefix). No key, and no direct provider call, appears in any client bundle. | `npm run check:secrets` scans `dist/` for **both** key formats — legacy `AIza` and current `AQ.` — plus the literal `GEMINI_API_KEY`; fails the build on a match |
-| N2 | One full cycle (upload → graded verdict) costs **≤ 2 model calls**: one call that extracts topics and produces the open question, one that evaluates the answer. Enforced in code, not by convention. | Counter assertion in the integration test |
-| N3 | A per-user cap of **10 cycles per day** is stored in the database and enforced server-side before any call. Exceeding it returns a typed refusal rendered as a plain "daily limit reached" state — never a blank screen or a generic error. Under anonymous identity a new session is free, so this cap bounds an ordinary user, not a determined one. N10 is the real ceiling. | Integration test that exhausts the quota |
-| N4 | Row Level Security prevents user A from reading user B's corpus, quizzes, or results. Identity is per browser session, so this isolates sessions rather than people — the RLS policy is exercised identically either way. | Integration test with two distinct users |
+| N2 | One full cycle costs **exactly one model call**. That call receives the extracted text and returns the topics plus one open question; evaluating the student answer is a second cycle, also exactly one call. Enforced in code, not by convention. | Counter assertion in the test |
 | N5 | Malformed model JSON triggers **exactly one** retry; a second failure surfaces a visible, typed error. The app never renders invented content on a failed call. *(Norman's Gulf of Evaluation: failure must look like failure, never a blank or default verdict.)* | Test with a stubbed adapter returning garbage |
 | N6 | A model timeout is bounded and surfaces as a typed error. *(Lufthansa 2904: a specification written only for the normal case fails in the storm. The abnormal path is specified, not assumed.)* | Test with a stubbed adapter that hangs |
 | N7 | `npm run verify` passes: typecheck, lint, and the full test suite. | CI on every push |
 | N8 | The model is pinned to the explicit version `models/gemini-3.1-flash-lite`. No moving alias (`-latest`) appears anywhere in the codebase. | Grep gate in CI; fails on `-latest` |
 | N9 | The provider key is sent in the `x-goog-api-key` **header**. The `?key=` query-parameter form appears nowhere. | Unit test on the adapter's request builder |
-| N10 | A **global** daily cap of 400 model calls across the entire deployment is stored in the database and checked server-side before any call, below the measured 500 RPD provider quota. Exceeding it returns the same typed refusal as N3. | Integration test that exhausts the global counter with the per-user cap not reached |
 
 ### Turn 1 is done when
 
@@ -111,12 +113,19 @@ never by quietly building it.
 - Corpora larger than 30 pages, and multi-file corpora in a single quiz
 - Video or audio input
 - Payment, subscription, or per-user billing
-- Persistent accounts of any kind: email/password, OAuth or social sign-in, password recovery, and cross-device continuity. Identity is a per-browser anonymous session; clearing browser data loses that session's material.
+- User accounts or identity of any kind: email/password, OAuth or social sign-in, password recovery, cross-device continuity, and anonymous sessions. The system has no notion of who is using it.
+- Any backend database, server-side persistence, or file storage of any kind
 - Multiple-choice questions and deterministic answer scoring
 - A ranked weakness map across topics
 - PPTX input; PDF with a text layer only
 - English-language source material
 - Internationalisation of the UI beyond a single chosen interface language
+
+**Accepted cost of removing the backend.** Nothing survives a page reload: the
+selected deck, the extracted text, the question and the verdict live only in the
+open tab. There is no server-side enforcement of any limit, because there is no
+server holding state — N11 bounds ordinary use in the browser and nothing more.
+Both costs were accepted knowingly; neither is a defect to be fixed later.
 
 ---
 
@@ -134,9 +143,8 @@ row upward across this line must be justified in a commit message.
 | Scoring multiple-choice answers | Deterministic | Comparison against a stored key |
 | Ranking topics into a weakness map | Deterministic | Arithmetic over stored scores |
 | Validating model output against a schema | Deterministic | Never ask a model to check a model |
-| Auth, storage, persistence, RLS | Deterministic | Supabase |
-| Quota accounting and call caps | Deterministic | Must be tamper-proof and cheap |
-| File parsing (PDF/PPTX → text) | Deterministic | Libraries do this correctly and for free |
+| Quota accounting and the cycle counter | Deterministic, **in the client** | Arithmetic over a stored count. Cheap, and honest about being unenforceable — see N11 |
+| File parsing (PDF → text) | Deterministic, in the browser | Libraries do this correctly and for free |
 
 ---
 
