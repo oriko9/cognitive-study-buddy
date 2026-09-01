@@ -10,8 +10,8 @@ auto-generated context costs attention and tokens. Earn every line.
 ## 1. Project
 
 A web app that turns a student's own course material into evidence about what
-they have not yet understood: upload a deck → extracted topics → short quiz →
-ranked weakness map.
+they have not yet understood: select a deck → extracted topics → one open
+question → a graded verdict with its reason shown.
 
 This is **cognified software**: the LLM is a runtime reasoning component, not a
 substitute for deterministic code and not a substitute for tests.
@@ -21,9 +21,9 @@ Done and the out-of-scope list. `specs/specification.md` holds architecture and
 contracts once written. Append to `specs/lessons-learned.md` whenever a mistake
 teaches a rule.
 
-**Stack:** React + Vite + TypeScript (strict) · Tailwind · Supabase (Auth,
-Postgres, Storage) · Google Gemini behind one adapter · Vercel (hosting + `api/`
-serverless functions).
+**Stack:** React + Vite + TypeScript (strict) · Tailwind · Google Gemini behind
+one adapter · Vercel (hosting + `api/` serverless functions). No database, no
+backend, no identity — see `specs/framing.md` §4 for what that costs.
 
 **Pinned model:** `models/gemini-3.1-flash-lite` — 15 RPM, 250K TPM, 500 RPD on
 the free tier. These numbers are the budget; they are measured, not assumed.
@@ -45,14 +45,11 @@ npm run check:secrets  # build, then fail if a provider key reached dist/
 npm run check:pins     # fail if a moving model alias reached any source file
 ```
 
-**Not available yet.** The Vercel and Supabase CLIs are not installed and
-Supabase is not configured. These commands will fail today. The block shrinks as
-each becomes real.
+**Not available yet.** The Vercel CLI is not installed. This block shrinks as
+each command becomes real.
 
 ```bash
 vercel dev             # app + api/ functions together
-supabase start         # local Supabase stack
-supabase db reset      # re-apply migrations from scratch
 ```
 
 `npm run verify` is the only signal that counts. "It looks right" is not a
@@ -69,7 +66,6 @@ boundary returns `{ ok: true, data } | { ok: false, error }` rather than throwin
 - `src/components/` — presentational. No fetching inside a component body.
 - `src/hooks/` — data access and state.
 - `api/` — Vercel serverless functions. All model calls live here and nowhere else.
-- `supabase/migrations/` — schema. Never edit a committed migration; add a new one.
 
 **Naming** — files `kebab-case.ts`, components `PascalCase.tsx`, types
 `PascalCase` with no `I` prefix, booleans read as assertions (`hasQuota`).
@@ -97,19 +93,19 @@ case.)*
    Never ask a model to validate a model.
 4. **Malformed output: retry exactly once, then fail visibly.** No third attempt,
    no repair loop, no invented substitute.
-5. **Bounded cost.** Max **3** model calls per full cycle — one topic
-   extraction, one batched generation of all five questions, one open-answer
-   evaluation — enforced in code. A cap of 10 cycles per user per day lives in
-   the database and is checked server-side before any call. Quota exhaustion
-   renders as a plain "daily limit reached" state, never a blank screen.
+5. **Bounded cost.** The per-cycle model-call budget is criterion **N2** in
+   `specs/framing.md`; the rate limit is **N11**. Read the number there — it is
+   not repeated here, because a figure restated in two files drifts (L8, L12).
+   Both are enforced in code, not by convention, and exhaustion renders as a
+   named "daily limit reached" state, never a blank screen.
 6. **Re-use context, don't re-send it.** Extracted corpus text is stored once and
    referenced across question generation. Re-sending the deck per question is a
    budget bug.
 7. **Do not parallelise to save latency.** An earlier version of this file said
    the opposite. With 15 RPM on the free tier, fanning out per-question calls
-   burns the request budget for a few seconds of wall-clock. Batch instead: all
-   five questions come back from one call. Parallelise only when the requests
-   are genuinely independent *and* the budget has room.
+   burns the request budget for a few seconds of wall-clock. Batch instead: the
+   topics and the question come back from a single call, per N2. Parallelise
+   only when the requests are genuinely independent *and* the budget has room.
 8. Check the boundary table in `specs/framing.md` §5 before moving any concern to
    the model. Reaching for the LLM where deterministic code suffices is the most
    common failure mode in this project.
@@ -123,7 +119,6 @@ Every test probes a real risk:
 - **Degenerate input** — zero-page file, deck with no extractable text, zero answers submitted.
 - **Boundaries** — exactly 30 pages, exactly 10 MB, exactly 5 topics, exactly 15 topics.
 - **Model failure** — malformed JSON, empty string, schema-valid but empty response, timeout.
-- **Isolation** — two users, neither able to read the other's rows.
 - **Cost** — call counter asserted against the cap.
 
 Rules: stub the adapter, never call the live API from tests. Fixtures are
@@ -153,7 +148,7 @@ is wrong, say so and explain why before changing it.
 - **Never bypass a gate.** No disabled lint rule, no `@ts-ignore`, no skipped
   test to reach green. If the gate is wrong, say so and wait.
 - **Ask before destructive actions:** dropping tables, resetting the database,
-  deleting files, changing auth config or RLS policies.
+  deleting files, and rewriting any spec criterion.
 - **Never claim something works without having run it.** If you did not run
   `npm run verify`, say that you did not run it.
 - **Scope discipline.** If a task needs something on the out-of-scope list, stop
