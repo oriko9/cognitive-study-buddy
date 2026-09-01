@@ -84,6 +84,7 @@ A gap means a criterion was withdrawn — the reason is in §4.
 | N7 | `npm run verify` passes: typecheck, lint, and the full test suite. | CI on every push |
 | N8 | The model is pinned to the explicit version `models/gemini-3.1-flash-lite`. No moving alias (`-latest`) appears anywhere in the codebase. | Grep gate in CI; fails on `-latest` |
 | N9 | The provider key is sent in the `x-goog-api-key` **header**. The `?key=` query-parameter form appears nowhere. | Unit test on the adapter's request builder |
+| N11 | A **client-side** rate limit: a per-browser counter in `localStorage` refuses a new cycle after **10 in a rolling 24 hours**, rendered as a named "daily limit reached" state — never a blank screen or a generic error. What it protects: an ordinary user from spending the shared free-tier quota by accident, in the case that actually happens. What it does not protect: anything, against anyone who clears site data or opens a private window, either of which resets the counter in one action and costs nothing. There is no server to enforce it on and no identity to enforce it against, so this is a courtesy to the honest user, not a control. The real ceiling is the provider's own free-tier quota, and this criterion does not raise it. | Unit test on the counter module |
 
 ### Turn 1 is done when
 
