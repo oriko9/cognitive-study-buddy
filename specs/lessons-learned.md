@@ -270,3 +270,41 @@ away from publication. Where two files differ by a word and only one is
 protected, the protection is a coin flip - so the gate cannot only inspect the
 build output, it must inspect what the repository is about to contain. N1 is
 widened accordingly in the next commit.
+
+---
+
+## L12 — A rule against restatement cannot enforce itself
+
+**When:** Turn 1, 2026-09-01, cutting the backend out of the Definition of Done.
+
+**What happened:** L8 was written after a retired call budget survived in the
+pull-request template. It was amended the same hour, when adding criterion N10
+invalidated three enumerated `N1–N9` ranges — one of them the clause deciding
+when Turn 1 is done. The amendment strengthened the rule: do not restate a set,
+refer to it.
+
+Both were followed attentively, and neither prevented anything. Cutting the
+scope this turn exposed **five further restatements**, every one written *after*
+L8 existed: `CLAUDE.md` §4.5 repeating a three-call budget and a batch of five
+questions, §4.7 repeating the five questions again, matrix row 6.2 repeating
+"N2 (3 calls per cycle)", the spiral log locking "the 3-call budget", and the
+PR template asking for "≤ 3, per criterion N2" — which cites the criterion and
+copies the number in the same sentence. That last one is the whole lesson in
+miniature: the author knew the rule, obeyed its letter, and drifted anyway.
+
+**What it cost:** Nothing directly — the documents were wrong, not the code. The
+real cost is what the count implies. Thirteen of the first thirty-one commits
+were documents correcting other documents, and after two attempts at this rule
+the correction rate did not fall. A rule re-applied by hand every time is not a
+rule that has been learned; it is a chore that has been remembered, and
+remembering degrades under schedule pressure exactly when the drift is worst.
+
+**The rule now:** L8 stands, but it is a preference, not a control, and it is
+labelled as one here. Prose cannot enforce prose. What would actually enforce it
+is a gate — the same move that turned N1 and N8 from sentences into
+`check:secrets` and `check:pins`: a check that fails when a governing figure
+from `framing.md` §3 appears anywhere outside the criterion that owns it, with
+citations by criterion id permitted and bare numerals not. Until that gate
+exists, every restatement is found by a human reading carefully, which is the
+mechanism that has now failed three times. **The correct response to a rule that
+keeps being broken is not a third restatement of the rule.**
