@@ -25,12 +25,12 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 
 | # | Requirement | Where | Status |
 | --- | --- | --- | --- |
-| 2.1 | Part 1 — goal and its business/academic reason | `specs/specification.md` | ⬜ |
-| 2.2 | Part 2 — testable success criteria, arithmetic and reference-based | `specs/specification.md` | ⬜ |
-| 2.3 | Part 3 — architectural guidance and boundaries | `specs/specification.md` | ⬜ |
-| 2.4 | Part 4 — validation approach | `specs/specification.md` | ⬜ |
-| 2.5 | Part 5 — known pitfalls and edge cases | `specs/specification.md` | ⬜ |
-| 2.6 | Knuth's five criteria: finiteness, definiteness, input, output, effectiveness | `specs/specification.md` — definiteness already partly served by N8 (pinned model, no moving alias) | ⬜ |
+| 2.1 | Part 1 — goal and its business/academic reason | `specs/specification.md` §1 | ✅ |
+| 2.2 | Part 2 — testable success criteria, arithmetic and reference-based | `specs/specification.md` §2 — per criterion: owning module, what the test stubs, which fixture; rows with no test today say so | ✅ |
+| 2.3 | Part 3 — architectural guidance and boundaries | `specs/specification.md` §3 — module table, both JSON contracts, prompt strategy, adapter contract, the N11 counter as untrusted input | ✅ |
+| 2.4 | Part 4 — validation approach | `specs/specification.md` §4 — what is stubbed, what needs a real call by hand, the committed fixture list; no test calls the live API | ✅ |
+| 2.5 | Part 5 — known pitfalls and edge cases | `specs/specification.md` §5 — nine cases, each a test, including the confidently-wrong answer (O5) that cannot be tested offline | ✅ |
+| 2.6 | Knuth's five criteria: finiteness, definiteness, input, output, effectiveness | `specs/specification.md` §6 — all five addressed, each naming where a natural-language brief cannot reach the formal standard rather than claiming it does | ✅ |
 
 ## 3. Commit history and the spiral (Modules 10, 12)
 
