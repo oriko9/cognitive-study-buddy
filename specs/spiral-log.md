@@ -66,6 +66,15 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
     both proceed. The global cap must be enforced atomically (a single
     conditional UPDATE or equivalent), and specification.md must specify that,
     not leave it to the implementation.
+  - **Superseded 2026-09-01 by the scope cut — the two items above are closed,
+    not outstanding.** Supabase anonymous sign-in is gone with the backend;
+    there is no identity of any kind, and the out-of-scope list in
+    `framing.md` §4 replaces the decision. N10 is withdrawn, so its atomicity
+    requirement has nothing to apply to; N11 replaces it with a client-side
+    counter whose stored value is user-writable by construction, which moves the
+    concern from a database race to untrusted input — specified in
+    `specs/specification.md` §3 rather than here. Both bullets are left in place
+    as the record of what was locked and when; neither is a live commitment.
 - **Accepted risks:**
   - The Gemini API key in use was exposed in a chat transcript and was later
     pasted into `.env.example` (tracked) instead of `.env.local` (ignored),
