@@ -308,3 +308,50 @@ citations by criterion id permitted and bare numerals not. Until that gate
 exists, every restatement is found by a human reading carefully, which is the
 mechanism that has now failed three times. **The correct response to a rule that
 keeps being broken is not a third restatement of the rule.**
+
+---
+
+## L13 — A scope change can invalidate the argument under an accepted risk
+
+**When:** Turn 1, 2026-09-01, the day after the backend was cut.
+
+**What happened:** On 2026-08-31 an exposed provider key was knowingly not
+rotated. The acceptance was written down properly, with its reasoning: a
+short-lived deployment, a free tier holding financial exposure at zero, and the
+global daily cap in criterion N10 bounding the volume anyone could consume.
+
+The next day the backend was cut and N10 was withdrawn with it. Its replacement,
+N11, is a `localStorage` counter that resets when a browser is cleared, so it
+bounds an honest user and nobody else. One of the three supports under the
+acceptance was gone. Nothing about the key changed — no new exposure, no
+incident, not one character of the risk entry altered. The argument protecting
+it disappeared in a different document, in a commit that never mentioned the key
+and correctly said nothing about it.
+
+The commit that cut N10 listed its dependents first, per L10, and listed them
+accurately: criteria, gates, tests, document lines. An accepted risk resting on
+one of those criteria was not on the list, because L10's list is built by asking
+what *implements* or *cites* a requirement. Nothing cites N10 in the risk entry
+except the words "the global cap in N10", four lines into a paragraph about a
+key.
+
+**What it cost:** One day of carrying an exposure whose stated justification had
+already lapsed, then one dashboard visit. The key has now been deleted rather
+than superseded, a new one issued and set in Vercel, and no tracked file has
+ever held either. The cost could have been the whole free-tier quota spent by
+anyone who had seen the transcript.
+
+**What would have caught it:** nothing in this repository. `check:secrets` looks
+for key material, not for reasoning that has expired. `check:pins` looks for a
+moving alias. `verify` type-checks, lints and tests code, and this was a
+paragraph. A human reading the diff of the scope cut would have seen N10
+removed and would have had to remember, unprompted, that a risk acceptance three
+sections earlier leaned on it. That is not a review, it is a coincidence.
+
+**The rule now:** an accepted risk is a claim with dependencies, exactly like a
+criterion, and it is re-examined whenever anything it names is withdrawn. In
+practice: when a criterion is cut, grep the repository for its id before
+committing — not only for what implements it, but for anything that *argues*
+from it. An acceptance is only as live as the reasoning underneath it, and that
+reasoning can be removed from somewhere else entirely. Until a gate can check
+this, it is a preference and is labelled as one — the same admission L12 forced.

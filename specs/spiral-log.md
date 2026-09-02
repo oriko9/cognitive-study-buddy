@@ -102,6 +102,28 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   N4 in particular is gone with nothing replacing it — there is no isolation to
   test when there is no data and no user. This is a genuine reduction in what
   the repository proves, not a reorganisation.
+- **Risk re-examined and closed 2026-09-01:** the key is rotated. The exposed
+  key has been **deleted** in Google AI Studio — dead, not merely superseded. A
+  new key was issued, set in Vercel across Production, Preview and Development,
+  written to `.env.local`, and the deployment re-run. The new key has never
+  appeared in a chat transcript and has never been written to `.env.example` or
+  any other tracked file.
+  The acceptance above rested on three supports: a short-lived deployment, a
+  free tier bounding financial exposure at zero, and **the global cap in N10
+  bounding the volume**. The scope cut of 2026-09-01 withdrew N10 along with the
+  backend. What replaced it, N11, is a `localStorage` counter that resets when a
+  browser is cleared, so it bounds nothing an attacker does. After the cut,
+  nothing bounded the exposed key but the provider's own free-tier quota — which
+  is a rate, not a control, and belongs to a third party.
+  So the risk was **re-decided, not re-accepted**. The original decision was
+  sound on the day it was made; it simply stopped being the same decision once
+  one of its supports was removed. Rotating costs one dashboard visit, which is
+  less than the argument would have cost to rebuild.
+  **The rule it demonstrates:** an accepted risk is only as live as the
+  reasoning underneath it, and a scope change can invalidate that reasoning
+  without touching the risk itself. Nothing about the key changed on 2026-09-01.
+  The argument protecting it disappeared, in a different document, in a commit
+  that never mentioned the key. Recorded as L13.
 - **Open items:** _non-blocking findings, swept when the turn closes_
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
