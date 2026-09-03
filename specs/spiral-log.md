@@ -133,11 +133,55 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   without touching the risk itself. Nothing about the key changed on 2026-09-01.
   The argument protecting it disappeared, in a different document, in a commit
   that never mentioned the key. Recorded as L13.
-- **Open items:** _non-blocking findings, swept when the turn closes_
+- **Open items:**
+  - **Unverified, and a real risk: does Vercel exempt `api/_lib/` from routing?**
+    `specification.md` §3.1 places the single adapter at `api/_lib/call-model.ts`
+    and relies on the underscore prefix to stop Vercel turning it into an
+    endpoint. That convention is asserted, not confirmed. If it is wrong, the
+    adapter is a public HTTP endpoint that takes a prompt and spends the
+    provider key — an open proxy, which is the failure N1 and the whole `api/`
+    boundary exist to prevent. It cannot be settled from here: it needs a
+    deploy and a request to the path. **Check before the first production
+    deploy, not after.**
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
-- **Observed:**
-- **Changed as a result:**
+- **Observed (2026-09-03):** the specification did not survive contact with the
+  implementation, in five places. Four were contracts that were reasonable
+  statements about a system that did not exist yet and were falsified by the
+  first artifact obliged to honour them: a response validator required to bound
+  a page number by a page count its endpoint never received; a size-and-page
+  check specified to happen "before any work" when page count is only knowable
+  after parsing; committed binary PDF fixtures nobody could review; and a
+  DOM-free test asserted as a property when the test environment is `jsdom` by
+  default and the file has to opt out.
+
+  The fifth is different in kind. **N2 and N5 contradicted each other.** N2 said
+  a cycle costs exactly one model call, enforced by a counter; N5 said malformed
+  JSON triggers exactly one retry. Both are DoD criteria, both sit in the same
+  table eleven lines apart, both had been read many times, and each is correct
+  alone — one is about cost, the other about failure handling. They cannot both
+  hold, and nothing surfaced it until a single artifact, the call counter in the
+  adapter, had to obey both at once. No further re-reading would have found it.
+
+  Also observed, from the environment rather than the documents:
+  `pdfjs-dist@6` cannot be loaded at all on the Node version this project pins,
+  because it calls `Uint8Array.prototype.toHex`, which Node 24.13.0 does not
+  implement. Found by running it (L5), not by reading release notes.
+
+- **Changed as a result:** N2 rewritten to state the success path and the retry
+  path separately, cap the total, and name the retry as the only permitted
+  second call — `f1c43dc`. Four contracts in `specification.md` corrected —
+  `5825f56`. `pdfjs-dist` pinned to a major that loads on the pinned Node,
+  rather than polyfilled into apparent health — `98afd34`. The client env module
+  the backend cut had orphaned was deleted rather than kept alive by inventing a
+  variable — `c2ef2a5`.
+
+  What this turn demonstrates, and the reason the spec was written before the
+  code rather than after: a specification that lands first can be contradicted
+  by the build, and this one was, five times in an afternoon. Written afterwards
+  it would have described whatever the implementation happened to do, and the
+  contradiction between two Definition-of-Done criteria would have been resolved
+  silently by whichever one the author implemented first.
 
 ---
 
