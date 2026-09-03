@@ -140,6 +140,28 @@ describe('callModel — N5', () => {
     expect(proseResult.ok).toBe(false);
   });
 
+  it('treats an empty response as malformed, then retries and can still succeed', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(providerResponse(''))
+      .mockResolvedValueOnce(providerResponse('{"value":"recovered"}'));
+
+    const result = await callModel(input, deps(fetchImpl as unknown as typeof fetch));
+
+    expect(result.ok).toBe(true);
+    expect(modelCallCount()).toBe(2);
+  });
+
+  it('fails visibly when every attempt returns an empty response', async () => {
+    const fetchImpl = vi.fn(() => Promise.resolve(providerResponse('')));
+
+    const result = await callModel(input, deps(fetchImpl as unknown as typeof fetch));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected a failure');
+    expect(result.error.kind).toBe('malformed');
+  });
+
   it('does not retry a refused request — repeating it cannot succeed', async () => {
     const fetchImpl = vi.fn(() => Promise.resolve(new Response('nope', { status: 400 })));
 
