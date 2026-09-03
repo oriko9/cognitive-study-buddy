@@ -54,7 +54,7 @@ repository itself. Every other row is a plan.
 | D4 | `src/lib/schema.ts` — same validator | Nothing. | `generate-two-questions.json`, `generate-no-question.json`, `generate-question-unknown-topic.json` |
 | D6 | `src/lib/schema.ts` — `parseEvaluateResponse` | Nothing. | `evaluate-ok.json`, `evaluate-score-out-of-range.json`, `evaluate-topic-mismatch.json`, `evaluate-empty-justification.json` |
 | D8 | — | **No automated test.** Click count is counted by hand and recorded in the turn log, as D8 itself specifies. A test would assert the click count of a UI it also defined. | — |
-| D9 | `src/lib/schema.ts`, `src/hooks/use-cycle.ts` | The adapter. | A Hebrew deck generated in memory, and `generate-ok-he.json` |
+| D9 | `src/lib/schema.ts`, `src/hooks/use-cycle.ts` | The adapter. | `generate-ok-he.json` — the Hebrew path through validation and the pipeline. **Not covered offline:** end-to-end extraction of Hebrew from a real PDF (see §4). |
 | N1 | `scripts/check-secrets.mjs` | — | **Implemented.** Proven against three planted failures. |
 | N2 | `api/_lib/call-model.ts` — call counter | The adapter, counting invocations. | Any valid response fixture |
 | N5 | `api/_lib/call-model.ts` | Adapter returning unparseable text, then valid; and unparseable twice. | `malformed-prose.txt`, `malformed-truncated.json` |
@@ -64,12 +64,21 @@ repository itself. Every other row is a plan.
 | N9 | `api/_lib/call-model.ts` — request builder | `fetch`, capturing the outgoing `Request`. | — |
 | N11 | `src/lib/cycle-counter.ts` | `localStorage` (an in-memory double) and the clock. | Hand-written corrupt values — see §3.5 |
 
-**D9 is weaker than it looks, and the weakness is structural.** With the adapter
-stubbed, a Hebrew fixture response proves only that the pipeline does not mangle
-Hebrew on the way through — it cannot prove the model answers in the source
-language, because the stub returns whatever we wrote. Whether the model actually
-complies is checked by hand once, against a real deck, and the result recorded
-in the spiral log. Any test claiming more than that would be theatre.
+**D9 is weaker than it looks, and the weakness is structural — in two places.**
+
+First, with the adapter stubbed, a Hebrew fixture response proves only that the
+pipeline does not mangle Hebrew on the way through — it cannot prove the model
+answers in the source language, because the stub returns whatever we wrote.
+
+Second, **extraction of Hebrew from a real PDF is untested offline and nothing in
+the suite would catch a regression in it.** No Hebrew deck can be generated: the
+standard PDF fonts are WinAnsi-encoded and cannot represent Hebrew codepoints at
+all, so the fixture generator refuses before a file exists (§4). `pdf-text.ts` is
+therefore exercised against Latin text only, and a change that broke its handling
+of right-to-left or non-WinAnsi content would go green.
+
+Both gaps close the same way and only that way: one hand-run against a real
+Hebrew deck, recorded in the spiral log. Any test claiming more would be theatre.
 
 ---
 
@@ -299,7 +308,6 @@ exercised without a provider.
 | Fixture | Purpose |
 | --- | --- |
 | `makeDeck({ pages, text })` | Ordinary text-layer deck |
-| `makeDeck` with Hebrew text | Hebrew source — **D9** |
 | `makeDeck({ text: null })` | Pages with no text layer — the scanned-deck case |
 | `makeDeck` at and one over D2's page limit | The boundary D2 sets, on both sides, generated from the constant that owns it |
 | `generate-ok.json`, `generate-ok-he.json` | Valid call 1 responses |

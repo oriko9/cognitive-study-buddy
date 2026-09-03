@@ -163,6 +163,15 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   hold, and nothing surfaced it until a single artifact, the call counter in the
   adapter, had to obey both at once. No further re-reading would have found it.
 
+  A sixth arrived from running the tests rather than reading anything, and it
+  was self-inflicted: §4 listed a Hebrew deck among the generated fixtures, and
+  no such deck can be generated. The standard PDF fonts are WinAnsi-encoded and
+  cannot represent Hebrew codepoints, so the generator refuses before a file
+  exists. The generated-fixtures decision, taken two commits earlier to keep
+  binaries out of the repository, created a case it could not express — and only
+  half of that trade was visible when it was made. Extraction of Hebrew from a
+  real PDF is now untested offline, and the specification says so.
+
   Also observed, from the environment rather than the documents:
   `pdfjs-dist@6` cannot be loaded at all on the Node version this project pins,
   because it calls `Uint8Array.prototype.toHex`, which Node 24.13.0 does not
