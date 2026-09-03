@@ -1,20 +1,74 @@
-/**
- * Shell only. No feature from specs/framing.md is implemented here yet.
- *
- * The styled block below exists to prove the Tailwind v4 pipeline actually
- * compiles utilities into the bundle — a config file proves nothing.
- */
-export function App() {
+import { DeckPicker } from './components/DeckPicker';
+import { FailureNotice } from './components/FailureNotice';
+import { QuestionCard } from './components/QuestionCard';
+import { VerdictCard } from './components/VerdictCard';
+import { useCycle, type CycleDeps } from './hooks/use-cycle';
+import {
+  extractionMessage,
+  limitMessage,
+  modelMessage,
+  serverMisconfiguredMessage,
+} from './lib/failure-messages';
+
+/** Storage and clock are injectable so tests need no browser globals. */
+function browserDeps(): CycleDeps {
+  return { storage: window.localStorage, clock: Date.now };
+}
+
+function Working({ label }: { label: string }) {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-8">
-      <div
-        data-testid="tailwind-probe"
-        className="max-w-md rounded-xl border border-indigo-400/40 bg-indigo-600 px-6 py-5 shadow-lg"
-      >
-        <h1 className="text-2xl font-semibold tracking-tight">Cognitive Study Buddy</h1>
-        <p className="mt-2 text-sm text-indigo-100">
-          Scaffold only — upload, topic extraction, quiz and weakness map are Turn 1 work.
-        </p>
+    <section
+      role="status"
+      data-testid="working"
+      className="rounded-xl border border-slate-700 bg-slate-900/60 px-6 py-5 text-sm text-slate-300"
+    >
+      {label}
+    </section>
+  );
+}
+
+export function App({ deps }: { deps?: CycleDeps }) {
+  const { state, remaining, start, submit, reset } = useCycle(deps ?? browserDeps());
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+        <header>
+          <h1 className="text-2xl font-semibold tracking-tight">Cognitive Study Buddy</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Turn a deck into one question you cannot answer from recognition. Cycles left today in
+            this browser: <span data-testid="remaining">{remaining}</span>.
+          </p>
+        </header>
+
+        {state.phase === 'idle' && (
+          <DeckPicker onSelect={(bytes) => void start(bytes)} disabled={false} />
+        )}
+        {state.phase === 'extracting' && <Working label="Reading the deck…" />}
+        {state.phase === 'generating' && <Working label="Finding topics and writing a question…" />}
+
+        {(state.phase === 'answering' || state.phase === 'evaluating') && (
+          <QuestionCard
+            generated={state.generated}
+            busy={state.phase === 'evaluating'}
+            onSubmit={(answer) => void submit(state.generated, answer)}
+          />
+        )}
+
+        {state.phase === 'done' && (
+          <VerdictCard generated={state.generated} verdict={state.verdict} onAgain={reset} />
+        )}
+
+        {state.phase === 'deck-failed' && (
+          <FailureNotice message={extractionMessage(state.failure)} onRetry={reset} />
+        )}
+        {state.phase === 'model-failed' && (
+          <FailureNotice message={modelMessage(state.failure)} onRetry={reset} />
+        )}
+        {state.phase === 'server-misconfigured' && (
+          <FailureNotice message={serverMisconfiguredMessage()} />
+        )}
+        {state.phase === 'limit-reached' && <FailureNotice message={limitMessage()} />}
       </div>
     </main>
   );
