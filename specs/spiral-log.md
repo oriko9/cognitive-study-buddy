@@ -134,15 +134,19 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   The argument protecting it disappeared, in a different document, in a commit
   that never mentioned the key. Recorded as L13.
 - **Open items:**
-  - **Unverified, and a real risk: does Vercel exempt `api/_lib/` from routing?**
+  - **Resolved 2026-09-03: Vercel does exempt `api/_lib/` from routing.**
     `specification.md` §3.1 places the single adapter at `api/_lib/call-model.ts`
-    and relies on the underscore prefix to stop Vercel turning it into an
-    endpoint. That convention is asserted, not confirmed. If it is wrong, the
-    adapter is a public HTTP endpoint that takes a prompt and spends the
-    provider key — an open proxy, which is the failure N1 and the whole `api/`
-    boundary exist to prevent. It cannot be settled from here: it needs a
-    deploy and a request to the path. **Check before the first production
-    deploy, not after.**
+    and relied on the underscore prefix to stop Vercel turning it into an
+    endpoint — asserted, not confirmed, when this item was opened. Checked
+    against the live preview deploy: a direct request to
+    `<preview-url>/api/_lib/call-model` returned `404 NOT_FOUND`. No Vercel
+    error ID was recorded for this check.
+    N1's boundary — the adapter is unreachable from outside `api/generate.ts`
+    and `api/evaluate.ts` — now rests on empirical confirmation against a real
+    deployment rather than on the convention it was built against. Had the
+    request instead reached the adapter, the result would have been an open
+    proxy: any caller could spend the provider key directly, which is the
+    exact failure N1 and the `api/` boundary exist to prevent.
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
 - **Commit range:** _fill in as it happens_
 - **Observed (2026-09-03):** the specification did not survive contact with the
