@@ -313,7 +313,7 @@ keeps being broken is not a third restatement of the rule.**
 
 ## L13 — A scope change can invalidate the argument under an accepted risk
 
-**When:** Turn 1, 2026-09-01, the day after the backend was cut.
+**When:** Turn 1, 2026-09-02, the day after the backend was cut.
 
 **What happened:** On 2026-08-31 an exposed provider key was knowingly not
 rotated. The acceptance was written down properly, with its reasoning: a

@@ -111,7 +111,7 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   N4 in particular is gone with nothing replacing it — there is no isolation to
   test when there is no data and no user. This is a genuine reduction in what
   the repository proves, not a reorganisation.
-- **Risk re-examined and closed 2026-09-01:** the key is rotated. The exposed
+- **Risk re-examined and closed 2026-09-02:** the key is rotated. The exposed
   key has been **deleted** in Google AI Studio — dead, not merely superseded. A
   new key was issued, set in Vercel across Production, Preview and Development,
   written to `.env.local`, and the deployment re-run. The new key has never

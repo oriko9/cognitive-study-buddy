@@ -5,7 +5,7 @@
 >
 > - **Status:** Locked for Spiral Turn 1
 > - **Owner:** Ori
-> - **Date:** 2026-09-01
+> - **Date:** 2026-09-02
 
 **On figures.** No numeric bound from `framing.md` §3 is repeated here. Where a
 contract has a bound, this document names the criterion that owns it — D3, D6,
