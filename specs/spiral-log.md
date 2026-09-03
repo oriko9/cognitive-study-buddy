@@ -148,6 +148,36 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
     proxy: any caller could spend the provider key directly, which is the
     exact failure N1 and the `api/` boundary exist to prevent.
 - **Planned observation:** run the full cycle on a real HIT lecture deck, in Hebrew, and record what the extraction actually returns.
+- **Real-deck observation, 2026-09-03 — the planned observation above could not
+  run: a real PDF fails to upload on the live preview deploy at all**, before
+  any Hebrew question of extraction quality could be reached. The UI showed
+  "That file could not be opened as a PDF."
+  Root cause, traced from `pdfjs-dist`'s own shipped source
+  (`node_modules/pdfjs-dist/legacy/build/pdf.mjs`) rather than the browser
+  console, which this session has no tool to open: `GlobalWorkerOptions.workerSrc`
+  is never set in `src/lib/pdf-text.ts`. `PDFWorker`'s static initializer
+  auto-sets it, but **only when `isNodeJS` is true**:
+  `if (isNodeJS) { this.#isWorkerDisabled = true; GlobalWorkerOptions.workerSrc ||= "./pdf.worker.mjs"; }`.
+  In a browser `isNodeJS` is false, nothing sets the value, the real-worker path
+  fails, the fake-worker fallback needs the same unset value to dynamically
+  import the worker module, and both attempts throw
+  `No "GlobalWorkerOptions.workerSrc" specified.`. The traced rejection message
+  is `Setting up fake worker failed: "No "GlobalWorkerOptions.workerSrc"
+  specified.".`, which `pdf-text.ts` catches and reports as `unreadable` —
+  exactly the message the deploy showed.
+  **This is not a gap in the six `pdf-text` tests' design — it is structural.**
+  Vitest's `jsdom` environment emulates `window` and `document`; it does not
+  replace `process`, so `isNodeJS` evaluates true inside every test in this
+  suite regardless of which vitest environment a file opts into. No test run by
+  this tool, under any configuration, could have exercised the browser code
+  path — only a real browser could, and only a real deploy surfaced it. This is
+  the case CLAUDE.md §5's "the dev server started is not a signal" and this
+  project's own repeated finding — a green suite proving less than it appears
+  to — arrives in a new shape: not a mis-scoped test, but a code path no
+  offline test in this stack can reach at all.
+  **Not yet fixed.** Reported and recorded; the fix (setting `workerSrc` to a
+  Vite-bundled URL for the worker script) is proposed, not applied, pending
+  confirmation.
 - **Commit range:** _fill in as it happens_
 - **Observed (2026-09-03):** the specification did not survive contact with the
   implementation, in five places. Four were contracts that were reasonable
