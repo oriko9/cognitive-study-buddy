@@ -175,9 +175,23 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   project's own repeated finding — a green suite proving less than it appears
   to — arrives in a new shape: not a mis-scoped test, but a code path no
   offline test in this stack can reach at all.
-  **Not yet fixed.** Reported and recorded; the fix (setting `workerSrc` to a
-  Vite-bundled URL for the worker script) is proposed, not applied, pending
-  confirmation.
+  **Fixed 2026-09-05 — build-confirmed, not run-confirmed.** `pdf-text.ts` now
+  sets `GlobalWorkerOptions.workerSrc ||= new URL('pdfjs-dist/legacy/build/pdf.worker.mjs', import.meta.url).toString()`.
+  The first attempt used a plain `=` and broke all nine tests that touch
+  extraction: pdfjs's own module-load initializer already sets `workerSrc`
+  correctly under Node (`"./pdf.worker.mjs"`, resolved relative to `pdf.mjs`
+  by its own internal `import()`), and the unconditional assignment overwrote
+  that working value with one resolved relative to *this* file instead,
+  breaking it. `||=` defers to pdfjs's own value when present and supplies
+  ours only when it is not — which is only in a browser, where nothing else
+  sets it. Verified two ways, both build-time: `vite build` emits
+  `dist/assets/pdf.worker-<hash>.mjs`, and that hashed filename appears
+  inside the built main bundle, confirming the reference was rewritten rather
+  than left as the broken literal. `npm run verify` passes at 89/89 with the
+  fix in place, which confirms the Node/test path was restored, not that the
+  browser path works. **No browser is available in this environment. This fix
+  has not been run in a browser and does not close this observation — the
+  real-deck check does, once confirmed there.**
 - **Commit range:** _fill in as it happens_
 - **Observed (2026-09-03):** the specification did not survive contact with the
   implementation, in five places. Four were contracts that were reasonable
