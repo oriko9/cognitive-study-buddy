@@ -11,6 +11,34 @@
  * A deck with no text layer is a named failure, never an empty string. An empty
  * corpus sent to the model spends budget to receive nonsense, and a blank
  * result would look to the student like a system that worked and found nothing.
+ *
+ * DO NOT DELETE the GlobalWorkerOptions.workerSrc line below — it looks like
+ * dead configuration and is not. pdfjs-dist auto-configures its own worker only
+ * when it detects Node (checking `typeof process`), which is also true inside
+ * Vitest's jsdom environment — jsdom emulates window and document, not
+ * process — so every test in this repository runs under that Node
+ * auto-configuration regardless of which vitest environment a file selects. In
+ * a real browser nothing sets it automatically, both the real-worker path and
+ * pdfjs's own fake-worker fallback need it, and without it every extraction
+ * fails with "Setting up fake worker failed: \"No `GlobalWorkerOptions.workerSrc`
+ * specified.\"". This was found against a live deploy, not by any offline test
+ * — see specs/spiral-log.md, Turn 1, 2026-09-03.
+ *
+ * The assignment below is `||=`, not `=`, and that is load-bearing, not a
+ * style choice. pdfjs's own module-load static initializer already sets
+ * GlobalWorkerOptions.workerSrc to a value ("./pdf.worker.mjs") that correctly
+ * resolves under Node, via a dynamic import() evaluated relative to pdf.mjs's
+ * own location — but only when isNodeJS is true. `new URL(..., import.meta.url)`
+ * resolves relative to *this* file, not pdf.mjs's, so an unconditional `=`
+ * here overwrites that already-correct Node value with a broken one and fails
+ * every test. `||=` only supplies this value when pdfjs left workerSrc at its
+ * default empty string — i.e. only in the browser, where nothing else sets it.
+ * `new URL(..., import.meta.url)` is Vite's documented pattern for bundling a
+ * referenced asset: under `vite build` it statically rewrites this expression
+ * to a hashed dist/assets/ URL. Confirmed by inspecting the built output
+ * (dist/assets/pdf.worker-*.mjs present, referenced from the main bundle);
+ * NOT confirmed by running in an actual browser — no browser is available in
+ * this environment.
  */
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
@@ -20,6 +48,11 @@ import {
   type ExtractionFailure,
   type Result,
 } from './contracts';
+
+pdfjs.GlobalWorkerOptions.workerSrc ||= new URL(
+  'pdfjs-dist/legacy/build/pdf.worker.mjs',
+  import.meta.url,
+).toString();
 
 export async function extractPdfText(
   bytes: ArrayBuffer,
