@@ -237,7 +237,8 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   all three `api/_lib/` modules cleanly. `npm run verify` passes at 89/89 with
   the tightened config. **Not confirmed against an actual Vercel deploy — that
   check belongs to whoever has the preview URL.**
-- **Commit range:** _fill in as it happens_
+- **Commit range:** `c3e64df..aa0826e` (the commit that records this range
+  falls outside it by necessity, per the convention Turn 0 set).
 - **Observed (2026-09-03):** the specification did not survive contact with the
   implementation, in five places. Four were contracts that were reasonable
   statements about a system that did not exist yet and were falsified by the
@@ -284,6 +285,40 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   it would have described whatever the implementation happened to do, and the
   contradiction between two Definition-of-Done criteria would have been resolved
   silently by whichever one the author implemented first.
+
+- **Real-deck observation, 2026-09-06 — the planned observation, closed.** A
+  real HIT course deck (נוסחאון הסתברות — a probability formula sheet, in
+  Hebrew) ran the full cycle on the live preview by hand. Extraction returned
+  intact Hebrew text; the topics returned were in Hebrew and relevant to the
+  source (probability concepts); the single question returned was in Hebrew and
+  genuinely hard — a real probability question, not answerable from
+  recognition alone. **D9 is confirmed by a real deck, in a human's eyes,**
+  which `specification.md` §4 always named as the only check that would count,
+  the committed fixtures being unable to reach Hebrew at all (recorded earlier
+  in this turn).
+  The answer given was "לא יודע" — I don't know. The model returned, in Hebrew,
+  that no answer had been provided and it could therefore not assess
+  understanding. It declined to invent a score against nothing. That is the
+  honest failure behaviour N5 and CLAUDE.md §3 ask for ("never substitute a
+  plausible-looking fallback"), observed against the live model rather than
+  asserted against a stub.
+  **Carried to Turn 2 as an open question, not a bug:** whether a non-answer
+  should score `0` explicitly or return a distinct "cannot assess" state, and
+  whether the verdict shown to the student carried a score alongside the
+  explanation or only the explanation. Turn 2 exists to examine exactly this —
+  the quality and behaviour of the grading call, O5 — and re-deciding it now,
+  on one observation, would be the same mistake N2 vs N5 already taught this
+  project not to make.
+
+**Turn 1 closed 2026-09-06.** It opened with framing and a Definition of Done
+for a system that did not exist; it closes with that system working, deployed,
+and confirmed end to end on a real Hebrew deck by a human — across a
+documented spiral of six specification contradictions and two deployment-only
+failures that no offline gate in this stack could have caught unaided, and in
+one case (the worker bug) structurally could not catch at all. Both deploy
+bugs are now fixed and, in the second case, gated at typecheck time against
+recurrence. Open going into Turn 2: O5 (grading quality) and the non-answer
+scoring question just raised.
 
 ---
 
