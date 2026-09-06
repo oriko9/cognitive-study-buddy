@@ -4,8 +4,8 @@ import {
   limitMessage,
   modelMessage,
   serverMisconfiguredMessage,
-} from './failure-messages';
-import type { ExtractionFailure, ModelFailure } from './contracts';
+} from './failure-messages.js';
+import type { ExtractionFailure, ModelFailure } from './contracts.js';
 
 const extractionKinds: ExtractionFailure[] = [
   { kind: 'too-large', bytes: 1 },

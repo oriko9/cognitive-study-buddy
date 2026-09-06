@@ -18,8 +18,8 @@ import {
   type ModelFailure,
   type ModelResult,
   type Result,
-} from '../../src/lib/contracts';
-import { stripJsonFence } from '../../src/lib/schema';
+} from '../../src/lib/contracts.js';
+import { stripJsonFence } from '../../src/lib/schema.js';
 
 /** N8: an explicit version. A moving alias makes behaviour unreproducible. */
 export const MODEL_ID = 'models/gemini-3.1-flash-lite';

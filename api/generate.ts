@@ -3,11 +3,11 @@
  * The model is reached only through the single adapter (CLAUDE.md §4.1, §4.2).
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { MAX_CORPUS_CHARS, MAX_PAGES } from '../src/lib/contracts';
-import { parseGenerateResponse } from '../src/lib/schema';
-import { callModel, resetModelCallCount } from './_lib/call-model';
-import { readServerEnv } from './_lib/env';
-import { generateSystemInstruction } from './_lib/prompts';
+import { MAX_CORPUS_CHARS, MAX_PAGES } from '../src/lib/contracts.js';
+import { parseGenerateResponse } from '../src/lib/schema.js';
+import { callModel, resetModelCallCount } from './_lib/call-model.js';
+import { readServerEnv } from './_lib/env.js';
+import { generateSystemInstruction } from './_lib/prompts.js';
 
 type Body = { text: string; pageCount: number };
 

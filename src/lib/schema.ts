@@ -19,7 +19,7 @@ import {
   type GenerateResult,
   type Result,
   type Topic,
-} from './contracts';
+} from './contracts.js';
 
 /**
  * The one normalisation permitted by specs/specification.md §3.4: strip a single

@@ -5,7 +5,7 @@
  * This is the guard that came back from src/lib/env.ts when the client module was
  * deleted: the client needs no variables, the server needs exactly one.
  */
-import type { Result } from '../../src/lib/contracts';
+import type { Result } from '../../src/lib/contracts.js';
 
 export type EnvSource = Readonly<Record<string, string | undefined>>;
 

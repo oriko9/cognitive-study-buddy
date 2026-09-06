@@ -47,7 +47,7 @@ import {
   type ExtractedDeck,
   type ExtractionFailure,
   type Result,
-} from './contracts';
+} from './contracts.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc ||= new URL(
   'pdfjs-dist/legacy/build/pdf.worker.mjs',

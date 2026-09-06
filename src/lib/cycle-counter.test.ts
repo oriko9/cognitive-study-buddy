@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { hasQuota, recordCycle, remainingCycles, type StorageLike } from './cycle-counter';
-import { CYCLE_LIMIT, CYCLE_WINDOW_MS, STORAGE_KEY, STORAGE_VERSION } from './contracts';
+import { hasQuota, recordCycle, remainingCycles, type StorageLike } from './cycle-counter.js';
+import { CYCLE_LIMIT, CYCLE_WINDOW_MS, STORAGE_KEY, STORAGE_VERSION } from './contracts.js';
 
 function memoryStorage(initial?: string): StorageLike & { read: () => string | null } {
   let value: string | null = initial ?? null;

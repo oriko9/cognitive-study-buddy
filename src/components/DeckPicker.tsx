@@ -1,4 +1,4 @@
-import { MAX_PAGES } from '../lib/contracts';
+import { MAX_PAGES } from '../lib/contracts.js';
 
 /** D8: one click to select a deck. Nothing is uploaded — the file is read here. */
 export function DeckPicker({

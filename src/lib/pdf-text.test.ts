@@ -3,9 +3,9 @@
 // DOM-free is a requirement this file opts into, not a property it has:
 // vite.config.ts sets jsdom for every test file (specs/specification.md §2).
 import { describe, expect, it } from 'vitest';
-import { makeDeck } from '../fixtures/make-pdf';
-import { extractPdfText } from './pdf-text';
-import { MAX_PAGES } from './contracts';
+import { makeDeck } from '../fixtures/make-pdf.js';
+import { extractPdfText } from './pdf-text.js';
+import { MAX_PAGES } from './contracts.js';
 
 // Not covered here, deliberately: extraction of Hebrew from a real PDF.
 // The standard PDF fonts are WinAnsi-encoded and cannot represent Hebrew

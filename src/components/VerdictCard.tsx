@@ -1,4 +1,4 @@
-import type { EvaluateResult, GenerateResult } from '../lib/contracts';
+import type { EvaluateResult, GenerateResult } from '../lib/contracts.js';
 
 /**
  * D6: the score and the one-sentence justification, shown to the student.

@@ -1,4 +1,4 @@
-import type { FailureMessage } from '../lib/failure-messages';
+import type { FailureMessage } from '../lib/failure-messages.js';
 
 /**
  * A failure the student can read: what failed, and what to do next. Never a

@@ -10,9 +10,9 @@ import type {
   ExtractionFailure,
   GenerateResult,
   ModelFailure,
-} from '../lib/contracts';
-import { extractPdfText } from '../lib/pdf-text';
-import { hasQuota, recordCycle, remainingCycles, type Clock, type StorageLike } from '../lib/cycle-counter';
+} from '../lib/contracts.js';
+import { extractPdfText } from '../lib/pdf-text.js';
+import { hasQuota, recordCycle, remainingCycles, type Clock, type StorageLike } from '../lib/cycle-counter.js';
 
 export type CycleState =
   | { phase: 'idle' }

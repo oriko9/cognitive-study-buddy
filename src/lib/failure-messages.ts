@@ -7,7 +7,7 @@
  * must look like failure — never a spinner that never ends, never a default
  * verdict. (Norman's Gulf of Evaluation; Lufthansa 2904.)
  */
-import { CYCLE_LIMIT, MAX_PAGES, type ExtractionFailure, type ModelFailure } from './contracts';
+import { CYCLE_LIMIT, MAX_PAGES, type ExtractionFailure, type ModelFailure } from './contracts.js';
 
 export type FailureMessage = {
   /** What failed, in the student's terms. */

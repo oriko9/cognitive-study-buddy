@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import handler from './generate';
-import { MAX_PAGES } from '../src/lib/contracts';
+import handler from './generate.js';
+import { MAX_PAGES } from '../src/lib/contracts.js';
 
 type Captured = { status: number; body: unknown };
 

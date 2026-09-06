@@ -1,14 +1,14 @@
-import { DeckPicker } from './components/DeckPicker';
-import { FailureNotice } from './components/FailureNotice';
-import { QuestionCard } from './components/QuestionCard';
-import { VerdictCard } from './components/VerdictCard';
-import { useCycle, type CycleDeps } from './hooks/use-cycle';
+import { DeckPicker } from './components/DeckPicker.js';
+import { FailureNotice } from './components/FailureNotice.js';
+import { QuestionCard } from './components/QuestionCard.js';
+import { VerdictCard } from './components/VerdictCard.js';
+import { useCycle, type CycleDeps } from './hooks/use-cycle.js';
 import {
   extractionMessage,
   limitMessage,
   modelMessage,
   serverMisconfiguredMessage,
-} from './lib/failure-messages';
+} from './lib/failure-messages.js';
 
 /** Storage and clock are injectable so tests need no browser globals. */
 function browserDeps(): CycleDeps {

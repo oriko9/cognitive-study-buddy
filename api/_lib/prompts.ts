@@ -15,7 +15,7 @@ import {
   MIN_TOPICS,
   SCORE_MAX,
   SCORE_MIN,
-} from '../../src/lib/contracts';
+} from '../../src/lib/contracts.js';
 
 /** Shared across both calls: the language rule (D9) and the no-prose rule. */
 const COMMON = `Answer in the same language as the source material. If the source is in Hebrew, every string you produce must be in Hebrew.

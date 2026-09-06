@@ -20,7 +20,7 @@ import {
   MAX_STORED_TIMESTAMPS,
   STORAGE_KEY,
   STORAGE_VERSION,
-} from './contracts';
+} from './contracts.js';
 
 /** The subset of the Storage API this module uses. */
 export type StorageLike = {

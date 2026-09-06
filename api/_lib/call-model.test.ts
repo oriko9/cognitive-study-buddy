@@ -6,14 +6,14 @@ import {
   callModel,
   modelCallCount,
   resetModelCallCount,
-} from './call-model';
-import { readServerEnv } from './env';
+} from './call-model.js';
+import { readServerEnv } from './env.js';
 import {
   MAX_CALLS_PER_CYCLE,
   CALLS_ON_SUCCESS,
   REQUEST_TIMEOUT_MS,
   type Result,
-} from '../../src/lib/contracts';
+} from '../../src/lib/contracts.js';
 
 const parseEcho = (raw: unknown): Result<{ value: string }> => {
   if (typeof raw === 'object' && raw !== null && 'value' in raw) {

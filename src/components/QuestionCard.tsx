@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MAX_ANSWER_CHARS, type GenerateResult } from '../lib/contracts';
+import { MAX_ANSWER_CHARS, type GenerateResult } from '../lib/contracts.js';
 
 /** D4: one open question, and the topics it was drawn from. */
 export function QuestionCard({

@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { parseEvaluateResponse, parseGenerateResponse, stripJsonFence } from './schema';
-import { MAX_TOPICS, MIN_TOPICS } from './contracts';
+import { parseEvaluateResponse, parseGenerateResponse, stripJsonFence } from './schema.js';
+import { MAX_TOPICS, MIN_TOPICS } from './contracts.js';
 
-import generateOk from '../fixtures/generate-ok.json';
-import generateOkHe from '../fixtures/generate-ok-he.json';
-import tooFew from '../fixtures/generate-too-few-topics.json';
-import tooMany from '../fixtures/generate-too-many-topics.json';
-import emptyTitle from '../fixtures/generate-empty-title.json';
-import twoQuestions from '../fixtures/generate-two-questions.json';
-import noQuestion from '../fixtures/generate-no-question.json';
-import unknownTopic from '../fixtures/generate-question-unknown-topic.json';
-import pageOutOfRange from '../fixtures/generate-page-out-of-range.json';
-import semanticallyEmpty from '../fixtures/semantically-empty.json';
-import evaluateOk from '../fixtures/evaluate-ok.json';
-import scoreOutOfRange from '../fixtures/evaluate-score-out-of-range.json';
-import topicMismatch from '../fixtures/evaluate-topic-mismatch.json';
-import emptyJustification from '../fixtures/evaluate-empty-justification.json';
+import generateOk from '../fixtures/generate-ok.json' with { type: 'json' };
+import generateOkHe from '../fixtures/generate-ok-he.json' with { type: 'json' };
+import tooFew from '../fixtures/generate-too-few-topics.json' with { type: 'json' };
+import tooMany from '../fixtures/generate-too-many-topics.json' with { type: 'json' };
+import emptyTitle from '../fixtures/generate-empty-title.json' with { type: 'json' };
+import twoQuestions from '../fixtures/generate-two-questions.json' with { type: 'json' };
+import noQuestion from '../fixtures/generate-no-question.json' with { type: 'json' };
+import unknownTopic from '../fixtures/generate-question-unknown-topic.json' with { type: 'json' };
+import pageOutOfRange from '../fixtures/generate-page-out-of-range.json' with { type: 'json' };
+import semanticallyEmpty from '../fixtures/semantically-empty.json' with { type: 'json' };
+import evaluateOk from '../fixtures/evaluate-ok.json' with { type: 'json' };
+import scoreOutOfRange from '../fixtures/evaluate-score-out-of-range.json' with { type: 'json' };
+import topicMismatch from '../fixtures/evaluate-topic-mismatch.json' with { type: 'json' };
+import emptyJustification from '../fixtures/evaluate-empty-justification.json' with { type: 'json' };
 
 const PAGES = 3;
 

@@ -3,11 +3,11 @@
  * one-sentence justification out. Reached only through the single adapter.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { MAX_ANSWER_CHARS, MAX_PROMPT_CHARS, TOPIC_ID_PATTERN } from '../src/lib/contracts';
-import { parseEvaluateResponse } from '../src/lib/schema';
-import { callModel, resetModelCallCount } from './_lib/call-model';
-import { readServerEnv } from './_lib/env';
-import { evaluateSystemInstruction } from './_lib/prompts';
+import { MAX_ANSWER_CHARS, MAX_PROMPT_CHARS, TOPIC_ID_PATTERN } from '../src/lib/contracts.js';
+import { parseEvaluateResponse } from '../src/lib/schema.js';
+import { callModel, resetModelCallCount } from './_lib/call-model.js';
+import { readServerEnv } from './_lib/env.js';
+import { evaluateSystemInstruction } from './_lib/prompts.js';
 
 type Body = { question: string; topicId: string; answer: string };
 

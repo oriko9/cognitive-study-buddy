@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { App } from './App';
-import type { CycleDeps } from './hooks/use-cycle';
-import { CYCLE_LIMIT, CYCLE_WINDOW_MS, STORAGE_KEY, STORAGE_VERSION } from './lib/contracts';
-import { makeDeck } from './fixtures/make-pdf';
-import generateOk from './fixtures/generate-ok.json';
-import evaluateOk from './fixtures/evaluate-ok.json';
+import { userEvent } from '@testing-library/user-event';
+import { App } from './App.js';
+import type { CycleDeps } from './hooks/use-cycle.js';
+import { CYCLE_LIMIT, CYCLE_WINDOW_MS, STORAGE_KEY, STORAGE_VERSION } from './lib/contracts.js';
+import { makeDeck } from './fixtures/make-pdf.js';
+import generateOk from './fixtures/generate-ok.json' with { type: 'json' };
+import evaluateOk from './fixtures/evaluate-ok.json' with { type: 'json' };
 
 const NOW = 1_800_000_000_000;
 
