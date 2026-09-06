@@ -192,6 +192,51 @@ changed. "Nothing changed" is a legitimate finding and must be stated as one.
   browser path works. **No browser is available in this environment. This fix
   has not been run in a browser and does not close this observation — the
   real-deck check does, once confirmed there.**
+  **Run-confirmed 2026-09-06.** The worker fix was checked in an actual browser
+  against the preview deploy, closing the piece build-confirmation could not:
+  extraction now succeeds.
+- **Real-deck observation, 2026-09-06 — a second, distinct deployment-only bug
+  surfaced immediately behind the first.** With extraction fixed, `/api/generate`
+  returned `500`, which the client surfaced only as "model could not be
+  reached." The Vercel function log gave the actual cause:
+  `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/src/lib/contracts'
+  imported from /var/task/api/generate.js`.
+  Diagnosed by reproduction, not by inspecting the deploy further: two throwaway
+  files in a `"type": "module"` package, one importing the other without a file
+  extension, fail under plain `node` with the identical error shape. Every
+  relative import in this repository — in `src/`, `api/`, and `api/_lib/` alike
+  — was written without an extension (`from './contracts'`, `from
+  '../src/lib/schema'`). That is legal under `tsc`'s `moduleResolution:
+  "bundler"` and under Vite/Vitest's own resolver, both of which special-case
+  extensionless specifiers; it is not legal under Node's native ESM loader,
+  which is what actually executes a Vercel Node function once
+  `package.json` declares `"type": "module"`, and which refuses to resolve a
+  relative specifier without an extension regardless of whether the file is
+  present. Vercel's builder transpiles each file individually rather than
+  bundling, so the extensionless specifier survived unchanged into the deployed
+  `.js` and failed at the first runtime import — `../src/lib/contracts`, the
+  first non-type-only import in `generate.ts`'s source order.
+  Vercel's tracing of files outside `api/` was never the defect — `api/_lib/`
+  already imported two directories up before this fix, and nothing about that
+  changed.
+  **Fixed 2026-09-06.** Added the missing `.js` extension to every relative
+  import across `src/` and `api/` (the standard TypeScript-for-native-ESM
+  idiom: write `./contracts.js` against a `contracts.ts` source; Vite and
+  Vitest already resolve that pattern), and switched `tsconfig.json` from
+  `moduleResolution: "bundler"` to `"nodenext"` (paired with `module:
+  "nodenext"`, plus `esModuleInterop` and `with { type: 'json' }` on the
+  fixture imports nodenext requires). The tsconfig change is the part that
+  answers this project's repeated question — twice now (the worker, and this)
+  — of whether anything can gate a deployment-only failure short of a real
+  deploy: `nodenext` makes an extensionless relative import a `tsc` error, so
+  `npm run typecheck`, already inside `verify` and CI, now refuses to compile a
+  future regression of this exact bug rather than merely failing to catch it.
+  Verified offline, close to the real execution path rather than through
+  Vite's bundler resolution: `npx tsx` — which loads TypeScript under real
+  Node module resolution — imports `api/generate.ts`, `api/evaluate.ts`, and
+  all three `api/_lib/` modules cleanly. `npm run verify` passes at 89/89 with
+  the tightened config. **Not confirmed against an actual Vercel deploy — that
+  check belongs to whoever has the preview URL.**
 - **Commit range:** _fill in as it happens_
 - **Observed (2026-09-03):** the specification did not survive contact with the
   implementation, in five places. Four were contracts that were reasonable
