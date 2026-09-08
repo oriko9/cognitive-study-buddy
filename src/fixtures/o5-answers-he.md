@@ -41,11 +41,45 @@ offline test in this suite (`specs/specification.md` §5, item 9).
 
 | # | Label | Answer (Hebrew, verbatim) | Expected score band | Observed score |
 | --- | --- | --- | --- | --- |
-| 1 | CORRECT | תכונת חוסר הזיכרון אומרת שאם כבר נכשלנו k פעמים, ההסתברות שנצטרך עוד n ניסיונות עד להצלחה זהה להסתברות ההתחלתית לקבל הצלחה תוך n ניסיונות — כלומר P(X > k+n \| X > k) = P(X > n). המשתנה "לא זוכר" כמה ניסיונות כבר בוזבזו. בחישוב הסתברות מותנה זה אומר שאפשר להתעלם מהעבר: ההסתברות המותנה מתאפסת חזרה להתפלגות המקורית, ולכן חישוב של P(X > k+n \| X > k) פשוט שווה ל-(1-p)^n. | 0.8–1.0 | |
-| 2 | PARTIAL | חוסר זיכרון זה שההתפלגות הגיאומטרית לא זוכרת מה קרה קודם. אם ניסינו כמה פעמים וזה לא הצליח, זה כאילו מתחילים מחדש. זה קשור להסתברות מותנה. | 0.4–0.6 | |
-| 3 | CONFIDENTLY WRONG (key case) | תכונת חוסר הזיכרון אומרת שככל שנכשלנו יותר פעמים, כך ההסתברות להצליח בניסיון הבא גדלה — המשתנה "זוכר" את הכישלונות ומפצה עליהם, בדומה לחוק המספרים הגדולים. לכן בהסתברות מותנה, P(X > k+n \| X > k) קטֵנה ככל ש-k גדל, כי אחרי הרבה כישלונות ההצלחה מתקרבת ונעשית ודאית יותר. | 0.0–0.2 | |
-| 4 | OFF-TOPIC | ההתפלגות הגיאומטרית שימושית מאוד בהנדסה ובמדעי המחשב, למשל בניתוח אלגוריתמים ובתורת התורים. היא קשורה גם להתפלגות המעריכית שהיא המקבילה הרציפה שלה. | 0.0–0.2 | |
-| 5 | EMPTY | לא יודע | 0 | |
+| 1 | CORRECT | תכונת חוסר הזיכרון אומרת שאם כבר נכשלנו k פעמים, ההסתברות שנצטרך עוד n ניסיונות עד להצלחה זהה להסתברות ההתחלתית לקבל הצלחה תוך n ניסיונות — כלומר P(X > k+n \| X > k) = P(X > n). המשתנה "לא זוכר" כמה ניסיונות כבר בוזבזו. בחישוב הסתברות מותנה זה אומר שאפשר להתעלם מהעבר: ההסתברות המותנה מתאפסת חזרה להתפלגות המקורית, ולכן חישוב של P(X > k+n \| X > k) פשוט שווה ל-(1-p)^n. | 0.8–1.0 | 1.0 |
+| 2 | PARTIAL | חוסר זיכרון זה שההתפלגות הגיאומטרית לא זוכרת מה קרה קודם. אם ניסינו כמה פעמים וזה לא הצליח, זה כאילו מתחילים מחדש. זה קשור להסתברות מותנה. | 0.4–0.6 | 0.7 |
+| 3 | CONFIDENTLY WRONG (key case) | תכונת חוסר הזיכרון אומרת שככל שנכשלנו יותר פעמים, כך ההסתברות להצליח בניסיון הבא גדלה — המשתנה "זוכר" את הכישלונות ומפצה עליהם, בדומה לחוק המספרים הגדולים. לכן בהסתברות מותנה, P(X > k+n \| X > k) קטֵנה ככל ש-k גדל, כי אחרי הרבה כישלונות ההצלחה מתקרבת ונעשית ודאית יותר. | 0.0–0.2 | 0 |
+| 4 | OFF-TOPIC | ההתפלגות הגיאומטרית שימושית מאוד בהנדסה ובמדעי המחשב, למשל בניתוח אלגוריתמים ובתורת התורים. היא קשורה גם להתפלגות המעריכית שהיא המקבילה הרציפה שלה. | 0.0–0.2 | 0 |
+| 5 | EMPTY | לא יודע | 0 | 0 |
+
+## Outcome, against the pre-set bands
+
+All five landed in or near their predicted band. Correct scored at the top of
+its band (1.0); partial landed just above its band's upper edge (0.7 vs.
+0.4–0.6) rather than inside it, which is a miss on the number but not on the
+direction — a partial answer still scored well below correct and well above
+the wrong/off-topic/empty cluster, so it did not blur the distinction the
+grading needs to make. The three low cases — confidently wrong, off-topic, and
+empty — all scored exactly 0.
+
+**The key case held.** Answer 3 reused the correct answer's own formula,
+`P(X > k+n | X > k) = P(X > n)`, and attached the opposite, false conclusion
+to it. A grader pattern-matching the presence of the right formula would have
+scored this high; the live model scored it 0. That is direct evidence the
+model graded what the answer *claimed*, not whether it *contained* the right
+symbols — the exact failure this fixture was built to catch, and the one no
+offline test in this suite can reach, since a stub returns the score it is
+given.
+
+**Decision rule applied** (`specs/spiral-log.md` Turn 2, set before this run):
+escalate to a stronger model only if a wrong answer scores above 0.5 more than
+once. Zero of the three wrong-answer cases (3, 4, 5) cleared 0.5. The rule
+resolves to **no escalation** — `models/gemini-3.1-flash-lite` stays, cap
+unchanged. Recorded in `specs/framing.md` §6 (O5) and `specs/spiral-log.md`
+Turn 2 as the outcome of firing the rule, not as a non-event.
+
+**What this does and does not prove.** This is one question, on one topic,
+with one answer per label — evidence, not proof. A single confidently-wrong
+answer scoring 0 does not rule out the same model scoring a different
+confidently-wrong answer, on a different topic, above 0.5. The decision rule
+was written to act on a small labelled set precisely because a full study was
+out of budget for this turn; the honest reading of this result is "no failure
+observed in the case built to surface one," not "the model cannot be fooled."
 
 ## How this gets filled in
 

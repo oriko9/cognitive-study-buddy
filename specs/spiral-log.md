@@ -322,16 +322,19 @@ scoring question just raised.
 
 ---
 
-## Turn 2 — Confront the grader with reality _(planned 2026-09-06)_
+## Turn 2 — Confront the grader with reality _(closed 2026-09-08)_
 
 - **Module beat:** M12 (safety and trajectory) · M13 (verification gates)
 - **Goal:** Resolve **O5** — decide by evidence whether `gemini-3.1-flash-lite` can grade free-text answers, rather than by assumption.
 - **To lock before acting:** a fixture set of real student answers per topic — correct, partially correct, confidently wrong, off-topic, and empty.
+- **Locked in this turn:** `src/fixtures/o5-answers-he.md`, committed before any run (`3967d88`) — the real question the live deploy generated in Turn 1 (memorylessness of the geometric distribution), five hand-written Hebrew answers each labelled with an expected score band set in advance, and the note that answer 3 deliberately reuses the correct answer's own formula while drawing the opposite false conclusion — the case that decides whether the grader reads for meaning or pattern-matches the formula's presence.
 - **Planned observation:** does the model score a confidently-wrong answer as correct? That failure mode is invisible to a happy-path test and is the one that would make the whole product dishonest.
 - **Decision rule set in advance:** if wrong answers are scored above 0.5 more than once in the fixture set, route only the evaluation call to `gemini-3.5-flash` and cut the per-user cap to match its 20 RPD. Record the trade-off either way.
-- **Commit range:**
-- **Observed:**
-- **Changed as a result:**
+- **Commit range:** `3967d88` — the single commit this turn adds before its close (the fixture). The commit that records this range and closes the turn falls outside it by necessity, per the convention Turn 0 set.
+- **Observed (2026-09-08):** all five answers run by hand through the live deploy against the one real question. Correct scored 1.0, partial scored 0.7 — above its predicted 0.4–0.6 band, a miss on the number but not on direction, since it still landed well below correct and well above the wrong cluster — and the three low cases (confidently wrong, off-topic, empty) all scored exactly 0. **The key case held:** answer 3 reused the correct answer's own formula, `P(X > k+n | X > k) = P(X > n)`, and attached the opposite, false conclusion to it. A grader pattern-matching formula presence would have scored this high; the live model scored it 0 — direct evidence the model graded what the answer claimed, not what symbols it contained. This is the exact failure `specification.md` §5 item 9 named as untestable offline, because a stub returns the score it is given, and it is the first evidence in this project observed against the live model rather than asserted against one.
+- **Changed as a result:** the decision rule fired and returned **no change** — a real outcome, recorded as one rather than treated as a non-event. Zero of the three wrong-answer cases cleared 0.5, so `models/gemini-3.1-flash-lite` stays and the per-user cap is unchanged; no escalation to `gemini-3.5-flash`. **O5 moves from open to resolved** in `specs/framing.md` §6, recorded there with the same scores and the same honest limit stated here: this is one question with one answer per label — evidence, not proof. A single confidently-wrong answer scoring 0 does not rule out the same model scoring a different confidently-wrong answer, on a different topic, above 0.5. Nothing in `specs/specification.md` or the adapter contract changed — the rule was written precisely so that a small labelled set could decide the model choice without a full study, and it did.
+
+**Turn 2 closed 2026-09-08.** It opened with O5 stated as open by design — flash-lite untested against real judgment — and closes with one real run against the case built to catch the specific dishonest failure (a confident, formula-citing, wrong answer scored as correct), which did not occur. The model stays pinned, the cap stays as specified. Open going into Turn 3: the abnormal-case hardening list Turn 3 already names, and the honest caveat that O5's resolution rests on one observation.
 
 ---
 

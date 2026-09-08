@@ -36,7 +36,7 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 
 | # | Requirement | Where | Status |
 | --- | --- | --- | --- |
-| 3.1 | At least three full co-evolution spiral turns | `specs/spiral-log.md` — Turns 1, 2, 3, each with a planned observation and a spec change | 🔄 Turns 0–1 closed |
+| 3.1 | At least three full co-evolution spiral turns | `specs/spiral-log.md` — Turns 1, 2, 3, each with a planned observation and a spec change | 🔄 Turns 0–2 closed |
 | 3.2 | A turn shows problem and solution evolving together | Rule stated at the top of `specs/spiral-log.md`; Turn 0 records three spec changes forced by measurement | ✅ |
 | 3.3 | Commit before invoking the agent | `CLAUDE.md` §6 | ✅ |
 | 3.4 | Honest atomic commit messages explaining *why* | `CLAUDE.md` §6; enforced by review in the PR template | ✅ |
