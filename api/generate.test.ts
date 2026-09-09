@@ -77,6 +77,16 @@ describe('POST /api/generate — request validation happens before any model cal
     expect(overLimit.captured.status).toBe(400);
   });
 
+  it('forwards a refused provider response as a typed error, never retrying it', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 400 }));
+    const response = res();
+
+    await handler(req({ text: 'corpus', pageCount: 2 }), response);
+
+    expect(response.captured.status).toBe(502);
+    expect(response.captured.body).toEqual({ ok: false, error: { kind: 'refused', status: 400 } });
+  });
+
   it('reports a misconfigured server without leaking why', async () => {
     delete process.env['GEMINI_API_KEY'];
     const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);

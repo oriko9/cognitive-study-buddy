@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { App } from './App.js';
 import type { CycleDeps } from './hooks/use-cycle.js';
-import { CYCLE_LIMIT, CYCLE_WINDOW_MS, STORAGE_KEY, STORAGE_VERSION } from './lib/contracts.js';
+import { CYCLE_LIMIT, CYCLE_WINDOW_MS, MAX_BYTES, STORAGE_KEY, STORAGE_VERSION } from './lib/contracts.js';
 import { makeDeck } from './fixtures/make-pdf.js';
 import generateOk from './fixtures/generate-ok.json' with { type: 'json' };
 import evaluateOk from './fixtures/evaluate-ok.json' with { type: 'json' };
@@ -112,6 +112,48 @@ describe('App — every failure is a named state', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('could not read');
     });
     expect(screen.getByRole('alert')).toHaveTextContent('Nothing was invented');
+  });
+
+  it('names a deck that is too large before ever opening it', async () => {
+    const fetchImpl = vi.fn();
+    render(<App deps={deps({ fetchImpl: fetchImpl as unknown as typeof fetch })} />);
+
+    const oversized = new Uint8Array(MAX_BYTES + 1);
+    const file = new File([oversized], 'huge.pdf', { type: 'application/pdf' });
+    await userEvent.upload(screen.getByTestId('deck-input'), file);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('too large to read in the browser');
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('names a file that could not be opened as a PDF, rather than a blank screen', async () => {
+    const fetchImpl = vi.fn();
+    render(<App deps={deps({ fetchImpl: fetchImpl as unknown as typeof fetch })} />);
+
+    const notAPdf = new TextEncoder().encode('this is not a pdf at all');
+    const file = new File([notAPdf], 'notes.pdf', { type: 'application/pdf' });
+    await userEvent.upload(screen.getByTestId('deck-input'), file);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('could not be opened as a PDF');
+    });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('names a provider refusal — the case that usually means quota is spent', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse({ ok: false, error: { kind: 'refused', status: 429 } }, 502)),
+    );
+    render(<App deps={deps({ fetchImpl: fetchImpl as unknown as typeof fetch })} />);
+
+    await selectDeck();
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('refused the request');
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('daily free-tier quota');
   });
 
   it('reports a misconfigured deployment without blaming the student', async () => {
