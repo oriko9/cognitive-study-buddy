@@ -49,12 +49,12 @@ repository itself. Every other row is a plan.
 
 | Criterion | Module that owns it | What the test stubs | Fixture |
 | --- | --- | --- | --- |
-| D2 | `src/lib/pdf-text.ts` | Nothing. Pure function over an `ArrayBuffer`; no network, no DOM. | `src/fixtures/deck-en.pdf`, plus decks at and just over the page and size limits D2 sets |
-| D3 | `src/lib/schema.ts` — `parseGenerateResponse` | Nothing. Pure validator over committed JSON. | `generate-ok.json`, `generate-too-few-topics.json`, `generate-too-many-topics.json`, `generate-empty-title.json` |
+| D2 | `src/lib/pdf-text.ts` | Nothing. Pure function over an `ArrayBuffer`, no network. **DOM-free is a requirement the test file must opt into**, not a property it has: `vite.config.ts` sets `jsdom` globally, so this file declares `@vitest-environment node` and would otherwise run against a DOM it does not need. | Generated in memory — see §4 |
+| D3 | `src/lib/schema.ts` — `parseGenerateResponse` | Nothing. Pure validator over committed JSON fixtures. | `generate-ok.json`, `generate-too-few-topics.json`, `generate-too-many-topics.json`, `generate-empty-title.json` |
 | D4 | `src/lib/schema.ts` — same validator | Nothing. | `generate-two-questions.json`, `generate-no-question.json`, `generate-question-unknown-topic.json` |
 | D6 | `src/lib/schema.ts` — `parseEvaluateResponse` | Nothing. | `evaluate-ok.json`, `evaluate-score-out-of-range.json`, `evaluate-topic-mismatch.json`, `evaluate-empty-justification.json` |
 | D8 | — | **No automated test.** Click count is counted by hand and recorded in the turn log, as D8 itself specifies. A test would assert the click count of a UI it also defined. | — |
-| D9 | `src/lib/schema.ts`, `src/hooks/use-cycle.ts` | The adapter. | `deck-he.pdf` and `generate-ok-he.json` |
+| D9 | `src/lib/schema.ts`, `src/hooks/use-cycle.ts` | The adapter. | `generate-ok-he.json` — the Hebrew path through validation and the pipeline. **Not covered offline:** end-to-end extraction of Hebrew from a real PDF (see §4). |
 | N1 | `scripts/check-secrets.mjs` | — | **Implemented.** Proven against three planted failures. |
 | N2 | `api/_lib/call-model.ts` — call counter | The adapter, counting invocations. | Any valid response fixture |
 | N5 | `api/_lib/call-model.ts` | Adapter returning unparseable text, then valid; and unparseable twice. | `malformed-prose.txt`, `malformed-truncated.json` |
@@ -64,12 +64,21 @@ repository itself. Every other row is a plan.
 | N9 | `api/_lib/call-model.ts` — request builder | `fetch`, capturing the outgoing `Request`. | — |
 | N11 | `src/lib/cycle-counter.ts` | `localStorage` (an in-memory double) and the clock. | Hand-written corrupt values — see §3.5 |
 
-**D9 is weaker than it looks, and the weakness is structural.** With the adapter
-stubbed, a Hebrew fixture response proves only that the pipeline does not mangle
-Hebrew on the way through — it cannot prove the model answers in the source
-language, because the stub returns whatever we wrote. Whether the model actually
-complies is checked by hand once, against a real deck, and the result recorded
-in the spiral log. Any test claiming more than that would be theatre.
+**D9 is weaker than it looks, and the weakness is structural — in two places.**
+
+First, with the adapter stubbed, a Hebrew fixture response proves only that the
+pipeline does not mangle Hebrew on the way through — it cannot prove the model
+answers in the source language, because the stub returns whatever we wrote.
+
+Second, **extraction of Hebrew from a real PDF is untested offline and nothing in
+the suite would catch a regression in it.** No Hebrew deck can be generated: the
+standard PDF fonts are WinAnsi-encoded and cannot represent Hebrew codepoints at
+all, so the fixture generator refuses before a file exists (§4). `pdf-text.ts` is
+therefore exercised against Latin text only, and a change that broke its handling
+of right-to-left or non-WinAnsi content would go green.
+
+Both gaps close the same way and only that way: one hand-run against a real
+Hebrew deck, recorded in the spiral log. Any test claiming more would be theatre.
 
 ---
 
@@ -82,7 +91,7 @@ Extends `CLAUDE.md` §3 rather than restating it. Modules this turn adds:
 | Module | Layer | Responsibility |
 | --- | --- | --- |
 | `src/lib/contracts.ts` | pure | Shared types for both calls, and the bound constants, each commented with the criterion id that owns it. The only place a DoD figure appears in code. |
-| `src/lib/pdf-text.ts` | pure | `ArrayBuffer` → extracted text plus page count. No network. Rejects a deck outside D2's limits before any work. |
+| `src/lib/pdf-text.ts` | pure | `ArrayBuffer` → extracted text plus page count. No network. Enforces D2's limits in two stages, because they are knowable at different moments: **size before parsing**, since byte length is known without opening the file; **page count after opening the document and before extracting any text**, since the count cannot be known until the document is parsed. A deck over either limit does no work beyond the check that rejects it. |
 | `src/lib/schema.ts` | pure | Deterministic validation of both model responses. Never imports the adapter. |
 | `src/lib/cycle-counter.ts` | pure | The N11 counter. Takes the storage object and the clock as arguments, so tests need no globals. |
 | `src/hooks/use-cycle.ts` | state | Orchestrates: extract → call 1 → answer → call 2. Holds no business rules. |
@@ -103,6 +112,7 @@ serves both.
 | Field | Type | Bound |
 | --- | --- | --- |
 | `text` | `string` | Non-empty after trim. Length ceiling *owned here*: `MAX_CORPUS_CHARS`, set so a deck at D2's page limit stays inside the model's input window. |
+| `pageCount` | `integer` | `>= 1`, and within D2's page limit. Carried in the request because the response validator bounds `topics[].page` by it, and the endpoint has no other way to know it — the text arrives already extracted. |
 
 **Response** (validated before it leaves `api/generate.ts`):
 
@@ -111,7 +121,7 @@ serves both.
 | `topics` | `Topic[]` | Count bounded by **D3**. |
 | `topics[].id` | `string` | Matches `/^t[0-9]+$/`. Unique within the array. *Owned here.* |
 | `topics[].title` | `string` | Non-empty after trim; ceiling `MAX_TITLE_CHARS`, *owned here*. |
-| `topics[].page` | `integer` | `>= 1` and `<= pageCount` of the deck the text came from — the source reference **D3** requires. |
+| `topics[].page` | `integer` | `>= 1` and `<= pageCount` **as supplied in the request** — the source reference **D3** requires. A page number outside the deck is a schema failure, not a warning: it is the model citing a source that does not exist. |
 | `question` | `Question` | Exactly the count **D4** fixes. Singular field, not an array, so the shape itself carries the constraint. |
 | `question.topicId` | `string` | Must equal one of `topics[].id`. |
 | `question.prompt` | `string` | Non-empty after trim; ceiling `MAX_PROMPT_CHARS`, *owned here*. |
@@ -293,14 +303,13 @@ exercised without a provider.
 
 **Checked by hand:** the click count **D8** fixes, recorded in the turn log.
 
-**Fixtures, all committed, all offline:**
+**Fixtures.** JSON fixtures are committed and offline. **PDF fixtures are not committed at all:** they are built in memory by `src/fixtures/make-pdf.ts`, which the tests call directly. A committed PDF is a binary nobody reviews — a reader cannot tell a two-page deck from a thirty-one-page one, or spot that the "no text layer" fixture quietly acquired one. A generator is source: the deck is described in the test that uses it, diffs are readable, and every boundary case is produced from the same code path rather than from a file someone made once and cannot regenerate.
 
 | Fixture | Purpose |
 | --- | --- |
-| `deck-en.pdf` | Ordinary text-layer deck |
-| `deck-he.pdf` | Hebrew source — **D9** |
-| `deck-no-text.pdf` | Scanned pages, no text layer |
-| `deck-at-page-limit.pdf`, `deck-over-page-limit.pdf` | The boundary D2 sets, on both sides |
+| `makeDeck({ pages, text })` | Ordinary text-layer deck |
+| `makeDeck({ text: null })` | Pages with no text layer — the scanned-deck case |
+| `makeDeck` at and one over D2's page limit | The boundary D2 sets, on both sides, generated from the constant that owns it |
 | `generate-ok.json`, `generate-ok-he.json` | Valid call 1 responses |
 | `generate-too-few-topics.json`, `generate-too-many-topics.json` | D3 bounds |
 | `generate-two-questions.json`, `generate-no-question.json` | D4 |
@@ -309,9 +318,9 @@ exercised without a provider.
 | `evaluate-score-out-of-range.json`, `evaluate-topic-mismatch.json`, `evaluate-empty-justification.json` | D6 |
 | `malformed-prose.txt`, `malformed-truncated.json`, `semantically-empty.json` | N5 and §5 |
 
-A fixture PDF is committed as a binary. `check:secrets` reads every tracked file
-as text; a PDF produces no match for either key format, but this is stated here
-because it is the kind of thing that surprises someone later.
+No PDF is committed, so `check:secrets` never reads a binary as text and the
+question of whether a compressed stream can accidentally match a key pattern does
+not arise. That is a side benefit of the generator, not its reason.
 
 ---
 

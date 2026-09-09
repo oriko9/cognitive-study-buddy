@@ -36,7 +36,7 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 
 | # | Requirement | Where | Status |
 | --- | --- | --- | --- |
-| 3.1 | At least three full co-evolution spiral turns | `specs/spiral-log.md` — Turns 1, 2, 3, each with a planned observation and a spec change | 🔄 Turn 0 closed |
+| 3.1 | At least three full co-evolution spiral turns | `specs/spiral-log.md` — Turns 1, 2, 3, each with a planned observation and a spec change | ✅ Turns 0–3 closed |
 | 3.2 | A turn shows problem and solution evolving together | Rule stated at the top of `specs/spiral-log.md`; Turn 0 records three spec changes forced by measurement | ✅ |
 | 3.3 | Commit before invoking the agent | `CLAUDE.md` §6 | ✅ |
 | 3.4 | Honest atomic commit messages explaining *why* | `CLAUDE.md` §6; enforced by review in the PR template | ✅ |
@@ -56,13 +56,13 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 
 | # | Requirement | Where | Status |
 | --- | --- | --- | --- |
-| 5.1 | Explicit gates; agent output is a hypothesis until checked | `CLAUDE.md` §5; `npm run verify` | 🔄 |
-| 5.2 | Gates catch real failures — no test theatre | `CLAUDE.md` §5 lists the risks each test must probe. The secrets gate was corrected twice before it shipped: it scanned only for the legacy `AIza` prefix and would have passed a bundle containing a current `AQ.` key, then scanned only `dist/` and would have passed the L11 near-miss. Proven against three planted failures rather than asserted | 🔄 remaining: the model-failure gates N5 (malformed JSON, one retry) and N6 (timeout) have nothing to test until the adapter exists |
+| 5.1 | Explicit gates; agent output is a hypothesis until checked | `CLAUDE.md` §5; `npm run verify` — exercised on every commit across Turns 1–3, including Turn 3's audit which ran it before and after adding tests (89 → 93) rather than assuming green | ✅ |
+| 5.2 | Gates catch real failures — no test theatre | `CLAUDE.md` §5 lists the risks each test must probe. The secrets gate was corrected twice before it shipped (legacy-prefix and `dist/`-only near-misses). Turn 3's audit is the strongest evidence yet: it read the actual suite against the actual abnormal-case list rather than trusting the failure-first convention, and found three real gaps — too-large, unreadable, and a refused provider response were proven at the function layer but never proven to reach the screen. An audit that finds real holes, not one that rubber-stamps existing coverage, is what this row asks for | ✅ |
 | 5.5 | N1 has an executable gate, not a convention | `scripts/check-secrets.mjs` via `npm run check:secrets` — scans `dist/` and every git-tracked file for both key formats and for an assigned `GEMINI_API_KEY`; no allowlist | ✅ |
 | 5.6 | N8 has an executable gate, not a convention | `scripts/check-pins.mjs` via `npm run check:pins` — fails on `-latest` in any tracked source file; proven against a planted alias | ✅ |
 | 5.7 | Both gates run automatically, not only when someone remembers | `.github/workflows/verify.yml` — CI runs `verify`, then `check:pins`, then `check:secrets` on every push and pull request to `main`; green since b5a708b | ✅ |
-| 5.3 | Tests, type checks, linters, review | `npm run verify` + CI + the PR template | 🔄 |
-| 5.4 | Merge-ready at the end | `.github/PULL_REQUEST_TEMPLATE.md` — five pillars | 🔄 |
+| 5.3 | Tests, type checks, linters, review | `npm run verify` + CI + the PR template | ✅ |
+| 5.4 | Merge-ready at the end | `.github/PULL_REQUEST_TEMPLATE.md` — five pillars | ✅ PR #1 refreshed against all three closed turns (Turn 1's spec contradictions and deploy bugs, Turn 2's O5 resolution, Turn 3's audit and the three gaps it closed); every box checked with cited evidence, no box checked out of politeness |
 
 ## 6. Economics of cognified software (Module 9)
 
@@ -77,11 +77,11 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 
 | # | Pillar | Where | Status |
 | --- | --- | --- | --- |
-| 7.1 | Functional completeness | PR template §1 | 🔄 |
-| 7.2 | Sound verification | PR template §2 | 🔄 |
-| 7.3 | SE hygiene — static analysis, lint, strict types | PR template §3 | 🔄 |
-| 7.4 | Rationale and communication | PR template §4; commit bodies | 🔄 |
-| 7.5 | Full auditability | PR template §5; `specs/spiral-log.md` | 🔄 |
+| 7.1 | Functional completeness | PR template §1 — three real-deck confirmations (Turn 1's full cycle, Turn 2's O5 run, Turn 3's page-limit refusal) | ✅ |
+| 7.2 | Sound verification | PR template §2 — 93 tests, fresh `verify`/`check:pins`/`check:secrets` output, CI link at HEAD | ✅ |
+| 7.3 | SE hygiene — static analysis, lint, strict types | PR template §3 | ✅ |
+| 7.4 | Rationale and communication | PR template §4; commit bodies — all three turns' trade-offs stated, including the honest gaps that remain | ✅ |
+| 7.5 | Full auditability | PR template §5; `specs/spiral-log.md` — commit range `c2ef2a5..d654acd`, all three turns closed | ✅ |
 
 ## 8. Logistics
 
