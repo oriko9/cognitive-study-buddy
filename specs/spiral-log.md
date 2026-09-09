@@ -338,12 +338,71 @@ scoring question just raised.
 
 ---
 
-## Turn 3 — Harden against the abnormal case _(planned 2026-09-07)_
+## Turn 3 — Harden against the abnormal case _(closed 2026-09-09)_
 
 - **Module beat:** M16 (merge-readiness) · M13 (verification gates)
 - **Goal:** The system fails honestly under every condition it will actually meet, and the repository is merge-ready.
 - **To lock before acting:** the list of abnormal cases to force — quota exhausted, model timeout, malformed JSON twice in a row, a deck with no extractable text, a 31-page deck, two users racing on the same quota row.
 - **Planned observation:** every one of those paths reaches the user as a named, readable state. *(Lufthansa 2904: the specification that described only the normal landing.)*
-- **Commit range:**
-- **Observed:**
-- **Changed as a result:**
+- **Real-deck observation, 2026-09-09.** A deck over 30 pages was uploaded to
+  the live deploy by hand. The system showed a named error stating the
+  document exceeds 30 pages and refused it cleanly — no crash, no silent
+  proceed. This is the too-many-pages path (**D2** / `ExtractionFailure`),
+  **run-confirmed against the real deploy**, not merely stub-confirmed
+  against `pdf-text.test.ts`. It is this turn's first real-deck observation,
+  in the same class as Turn 1's worker and ESM bugs: a case only a real
+  browser against a real deploy can settle.
+- **Commit range:** `7b7cadb` — the single commit this turn adds before its
+  close (the four new tests). The commit that records this range and closes
+  the turn falls outside it by necessity, per the convention Turn 0 set.
+- **Observed (2026-09-09) — the audit.** Every abnormal case in this turn's
+  "to lock" list and `specification.md` §5 was checked against the actual
+  test suite and the real-deck run above, distinguishing three levels of
+  proof: whether the underlying function returns the right failure kind,
+  whether a test proves the named message actually renders to `role=alert`
+  on screen (`App.tsx` wires each phase — `deck-failed`, `model-failed` — to
+  its message function through **one generic switch**, so a render test for
+  one kind in a phase does not prove any other kind in that phase renders),
+  and whether a real deploy confirmed it.
+
+  **Six of nine were already fully covered at both levels**, built
+  failure-first during Turn 1's construction rather than retrofitted here:
+  quota exhausted (N11), model timeout (N6), malformed-twice (N5), no
+  extractable text, and misconfigured server all have both a function-level
+  test and an `App.test.tsx` test asserting the specific message on screen.
+  **Too-many-pages** had the function-level boundary test but no render
+  test; the real-deck run above closes it instead, with stronger evidence
+  — an actual browser, not `jsdom`.
+
+  **The audit found three real gaps, stated plainly rather than
+  rubber-stamped:** the failure-first convention held for 6 of 9 cases, not
+  9 of 9. Too-large and unreadable each had the failure kind proven in
+  `pdf-text.test.ts` but no test proving the message reaches the screen.
+  Refused/4xx was the deepest gap: proven only at the adapter layer
+  (`call-model.test.ts`), with nothing at the handler layer or the screen —
+  compounding with the pre-existing gap that `api/evaluate.ts` has no test
+  file at all.
+- **Changed as a result:** four tests added, closing the "does the user see
+  it" question for all three — `7b7cadb`. Three in `src/App.test.tsx`
+  (too-large, unreadable, refused), each asserting the specific message
+  text on `role=alert`, following the same render-and-assert pattern as the
+  five failure-state tests already there. One in `api/generate.test.ts`,
+  proving the handler forwards a refused provider response as `{kind:
+  'refused', status}` rather than retrying or leaking it — added because it
+  was one mock away from an existing test, not as an attempt to close the
+  larger `api/evaluate.ts` gap. `npm run verify`: 89 → 93 tests, all green.
+  **Named, not fixed:** `api/evaluate.ts` still has no dedicated test file.
+  This turn closed the render-reaches-the-user question for three failure
+  kinds; it did not rebuild the endpoint test surface that gap belongs to.
+  That stays in Known gaps for whoever picks it up.
+
+**Turn 3 closed 2026-09-09.** It opened with a hardening goal against a list
+of abnormal cases and closed having found that the goal was mostly already
+met — six of nine cases were failure-first by construction in Turn 1 — and
+having found three cases where it was not: the failure kind was proven but
+the message reaching the user was assumed, not tested. Closing that gap,
+plus the real-deck confirmation of the one case a unit test cannot fully
+settle (too-many-pages, run-confirmed against the live deploy), is what this
+turn changed. An audit that finds real holes rather than confirming existing
+work is the more honest spiral outcome, and it is recorded as such rather
+than as a formality.
