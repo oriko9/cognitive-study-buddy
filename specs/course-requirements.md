@@ -62,7 +62,7 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 | 5.6 | N8 has an executable gate, not a convention | `scripts/check-pins.mjs` via `npm run check:pins` — fails on `-latest` in any tracked source file; proven against a planted alias | ✅ |
 | 5.7 | Both gates run automatically, not only when someone remembers | `.github/workflows/verify.yml` — CI runs `verify`, then `check:pins`, then `check:secrets` on every push and pull request to `main`; green since b5a708b | ✅ |
 | 5.3 | Tests, type checks, linters, review | `npm run verify` + CI + the PR template | ✅ |
-| 5.4 | Merge-ready at the end | `.github/PULL_REQUEST_TEMPLATE.md` — five pillars | 🔄 PR #1's evidence reflects Turn 1's close; not yet refreshed against Turns 2–3 |
+| 5.4 | Merge-ready at the end | `.github/PULL_REQUEST_TEMPLATE.md` — five pillars | ✅ PR #1 refreshed against all three closed turns (Turn 1's spec contradictions and deploy bugs, Turn 2's O5 resolution, Turn 3's audit and the three gaps it closed); every box checked with cited evidence, no box checked out of politeness |
 
 ## 6. Economics of cognified software (Module 9)
 
@@ -77,11 +77,11 @@ Status: ✅ done · 🔄 in progress · ⬜ not started
 
 | # | Pillar | Where | Status |
 | --- | --- | --- | --- |
-| 7.1 | Functional completeness | PR template §1 | 🔄 |
-| 7.2 | Sound verification | PR template §2 | 🔄 |
-| 7.3 | SE hygiene — static analysis, lint, strict types | PR template §3 | 🔄 |
-| 7.4 | Rationale and communication | PR template §4; commit bodies | 🔄 |
-| 7.5 | Full auditability | PR template §5; `specs/spiral-log.md` | 🔄 |
+| 7.1 | Functional completeness | PR template §1 — three real-deck confirmations (Turn 1's full cycle, Turn 2's O5 run, Turn 3's page-limit refusal) | ✅ |
+| 7.2 | Sound verification | PR template §2 — 93 tests, fresh `verify`/`check:pins`/`check:secrets` output, CI link at HEAD | ✅ |
+| 7.3 | SE hygiene — static analysis, lint, strict types | PR template §3 | ✅ |
+| 7.4 | Rationale and communication | PR template §4; commit bodies — all three turns' trade-offs stated, including the honest gaps that remain | ✅ |
+| 7.5 | Full auditability | PR template §5; `specs/spiral-log.md` — commit range `c2ef2a5..d654acd`, all three turns closed | ✅ |
 
 ## 8. Logistics
 
