@@ -3,9 +3,12 @@
  * can be swapped in one file (CLAUDE.md §4.2) and so the call counter N2 demands
  * cannot be bypassed by a second code path.
  *
- * Contract: specs/specification.md §3.5.
- *   - key in the x-goog-api-key header, never ?key= (N9)
- *   - model pinned to an explicit version, never a moving alias (N8)
+ * Provider: OpenRouter (chat-completions, OpenAI-shaped request/response).
+ * specs/specification.md §3.5 and framing.md N8/N9 still describe the prior
+ * Gemini contract and have not been updated to match — that spec drift is a
+ * known gap from this change, not an oversight to hide.
+ *   - key in the Authorization: Bearer header, never a query parameter
+ *   - model pinned to an explicit id, never a moving alias
  *   - deterministic validation supplied by the caller (N5, CLAUDE.md §4.3)
  *   - retry exactly once, and only for timeout or malformed (N5)
  *   - bounded per attempt and in total (N6)
@@ -21,10 +24,10 @@ import {
 } from '../../src/lib/contracts.js';
 import { stripJsonFence } from '../../src/lib/schema.js';
 
-/** N8: an explicit version. A moving alias makes behaviour unreproducible. */
-export const MODEL_ID = 'models/gemini-3.1-flash-lite';
+/** An explicit id. A moving alias makes behaviour unreproducible. */
+export const MODEL_ID = 'meta-llama/llama-3.1-8b-instruct:free';
 
-const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/${MODEL_ID}:generateContent`;
+const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
 // N2's accounting lives here because this is the only place every call passes
 // through. Attempts are counted, so a retry is visible to the assertion.
@@ -59,15 +62,19 @@ export function buildRequest(
     init: {
       method: 'POST',
       headers: {
-        // N9: the header form. The ?key= query form appears nowhere.
-        'x-goog-api-key': apiKey,
+        // Bearer token in the header. The key appears nowhere in the URL.
+        authorization: `Bearer ${apiKey}`,
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        contents: [{ role: 'user', parts: [{ text: userText }] }],
+        model: MODEL_ID,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: userText },
+        ],
         // Constrain the shape at the API level, not only by asking politely.
-        generationConfig: { responseMimeType: 'application/json', temperature: 0 },
+        response_format: { type: 'json_object' },
+        temperature: 0,
       }),
       signal,
     },
@@ -78,33 +85,23 @@ function extractText(payload: unknown): Result<string> {
   if (typeof payload !== 'object' || payload === null) {
     return { ok: false, error: 'provider response was not an object' };
   }
-  const candidates = (payload as Record<string, unknown>)['candidates'];
-  if (!Array.isArray(candidates) || candidates.length === 0) {
-    return { ok: false, error: 'provider response contained no candidates' };
+  const choices = (payload as Record<string, unknown>)['choices'];
+  if (!Array.isArray(choices) || choices.length === 0) {
+    return { ok: false, error: 'provider response contained no choices' };
   }
-  const first: unknown = candidates[0];
+  const first: unknown = choices[0];
   if (typeof first !== 'object' || first === null) {
-    return { ok: false, error: 'candidate was not an object' };
+    return { ok: false, error: 'choice was not an object' };
   }
-  const content = (first as Record<string, unknown>)['content'];
-  if (typeof content !== 'object' || content === null) {
-    return { ok: false, error: 'candidate contained no content' };
+  const message = (first as Record<string, unknown>)['message'];
+  if (typeof message !== 'object' || message === null) {
+    return { ok: false, error: 'choice contained no message' };
   }
-  const parts = (content as Record<string, unknown>)['parts'];
-  if (!Array.isArray(parts) || parts.length === 0) {
-    return { ok: false, error: 'content contained no parts' };
+  const content = (message as Record<string, unknown>)['content'];
+  if (typeof content !== 'string' || content.trim() === '') {
+    return { ok: false, error: 'message contained no content' };
   }
-  const text = parts
-    .map((part) =>
-      typeof part === 'object' && part !== null && 'text' in part
-        ? typeof (part as { text: unknown }).text === 'string'
-          ? (part as { text: string }).text
-          : ''
-        : '',
-    )
-    .join('');
-  if (text.trim() === '') return { ok: false, error: 'provider returned empty text' };
-  return { ok: true, data: text };
+  return { ok: true, data: content };
 }
 
 type AttemptOutcome<T> = { ok: true; data: T } | { ok: false; error: ModelFailure };

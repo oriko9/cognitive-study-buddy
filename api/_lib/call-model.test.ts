@@ -23,7 +23,7 @@ const parseEcho = (raw: unknown): Result<{ value: string }> => {
 };
 
 function providerResponse(text: string, status = 200): Response {
-  return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), {
+  return new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
     status,
     headers: { 'content-type': 'application/json' },
   });
@@ -40,12 +40,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('buildRequest — N9, N8', () => {
-  it('sends the key in the x-goog-api-key header', () => {
+describe('buildRequest', () => {
+  it('sends the key in the Authorization bearer header', () => {
     const { init } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal);
 
     const headers = init.headers as Record<string, string>;
-    expect(headers['x-goog-api-key']).toBe('test-key-not-real');
+    expect(headers['authorization']).toBe('Bearer test-key-not-real');
   });
 
   it('never puts the key in the query string', () => {
@@ -55,10 +55,12 @@ describe('buildRequest — N9, N8', () => {
     expect(url).not.toContain('test-key-not-real');
   });
 
-  it('pins an explicit model version with no moving alias', () => {
-    const { url } = buildRequest('sys', 'user', 'k', new AbortController().signal);
+  it('pins an explicit model id with no moving alias', () => {
+    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal);
 
-    expect(url).toContain(MODEL_ID);
+    if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
+    const body = JSON.parse(init.body) as { model: string };
+    expect(body.model).toBe(MODEL_ID);
     expect(MODEL_ID).not.toContain('-' + 'latest');
   });
 
@@ -66,8 +68,8 @@ describe('buildRequest — N9, N8', () => {
     const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal);
 
     if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
-    const body = JSON.parse(init.body) as { generationConfig: { responseMimeType: string } };
-    expect(body.generationConfig.responseMimeType).toBe('application/json');
+    const body = JSON.parse(init.body) as { response_format: { type: string } };
+    expect(body.response_format.type).toBe('json_object');
   });
 });
 
@@ -201,22 +203,22 @@ describe('callModel — N6', () => {
 
 describe('readServerEnv — N1', () => {
   it('returns the key when it is present server-side', () => {
-    const result = readServerEnv({ GEMINI_API_KEY: 'server-side-key' });
+    const result = readServerEnv({ OPENROUTER_API_KEY: 'server-side-key' });
 
     expect(result).toEqual({ ok: true, data: { apiKey: 'server-side-key' } });
   });
 
   it('rejects a VITE_-prefixed key, which Vite would inline into the bundle', () => {
-    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'leaked-key' });
+    const result = readServerEnv({ VITE_OPENROUTER_API_KEY: 'leaked-key' });
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
-    expect(result.error).toContain('VITE_GEMINI_API_KEY');
+    expect(result.error).toContain('VITE_OPENROUTER_API_KEY');
     expect(result.error).toContain('client bundle');
   });
 
   it('never echoes the secret value back in the error', () => {
-    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'leaked-value-here' });
+    const result = readServerEnv({ VITE_OPENROUTER_API_KEY: 'leaked-value-here' });
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
@@ -225,7 +227,7 @@ describe('readServerEnv — N1', () => {
 
   it('rejects the prefixed key even when the correct one is also set', () => {
     expect(
-      readServerEnv({ GEMINI_API_KEY: 'ok-key', VITE_GEMINI_API_KEY: 'leaked-key' }).ok,
+      readServerEnv({ OPENROUTER_API_KEY: 'ok-key', VITE_OPENROUTER_API_KEY: 'leaked-key' }).ok,
     ).toBe(false);
   });
 
@@ -234,6 +236,6 @@ describe('readServerEnv — N1', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
-    expect(result.error).toContain('GEMINI_API_KEY');
+    expect(result.error).toContain('OPENROUTER_API_KEY');
   });
 });
