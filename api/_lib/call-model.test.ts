@@ -76,8 +76,20 @@ describe('buildRequest', () => {
     const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 777);
 
     if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
-    const body = JSON.parse(init.body) as { max_tokens: number };
-    expect(body.max_tokens).toBe(777);
+    // The pinned model is in OpenAI's GPT-5 reasoning family, which rejects
+    // `max_tokens` and requires `max_completion_tokens` instead.
+    const body = JSON.parse(init.body) as { max_completion_tokens: number };
+    expect(body.max_completion_tokens).toBe(777);
+  });
+
+  it('omits temperature and uses max_completion_tokens for the GPT-5 reasoning family', () => {
+    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 500);
+
+    if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
+    const body = JSON.parse(init.body) as Record<string, unknown>;
+    expect(body['temperature']).toBeUndefined();
+    expect(body['max_tokens']).toBeUndefined();
+    expect(body['max_completion_tokens']).toBe(500);
   });
 });
 

@@ -27,14 +27,13 @@ import { stripJsonFence } from '../../src/lib/schema.js';
 /**
  * An explicit id. A moving alias makes behaviour unreproducible.
  * Paid (O2, framing.md N8), bounded by a per-key credit limit set on the
- * OpenRouter account, not by anything in this codebase (N11). Chosen over
- * openai/gpt-5-nano: gpt-oss-20b is cheaper (~$0.018/M input, $0.09/M
- * output vs. ~$0.05/$0.40) and, being open-weight, is served by 12
- * providers on OpenRouter with built-in failover — a single proprietary
- * source is exactly the fragility this project has been fixing away from
- * (Gemini's rate limit, then the llama :free 404).
+ * OpenRouter account, not by anything in this codebase (N11). Moved from
+ * gpt-oss-20b for latency (Turn 7) — the tradeoff being gpt-5-nano is
+ * OpenAI-proprietary, a single-provider dependency on OpenRouter rather
+ * than gpt-oss-20b's 12-provider failover, and costs more per token
+ * (~$0.05/M input, $0.40/M output vs. ~$0.018/$0.09).
  */
-export const MODEL_ID = 'openai/gpt-oss-20b';
+export const MODEL_ID = 'openai/gpt-5-nano';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -64,6 +63,13 @@ export type CallModelDeps = {
   now?: () => number;
 };
 
+// OpenAI's GPT-5 family (reasoning models) rejects two parameters every
+// other model here has accepted: a non-default `temperature` fails outright
+// ("reasoning models don't support sampling parameters"), and `max_tokens`
+// must be sent as `max_completion_tokens` instead. Documented across many
+// independent OpenAI-API clients hitting the same change, not a guess.
+const IS_REASONING_FAMILY = MODEL_ID.startsWith('openai/gpt-5');
+
 export function buildRequest(
   systemInstruction: string,
   userText: string,
@@ -88,10 +94,12 @@ export function buildRequest(
         ],
         // Constrain the shape at the API level, not only by asking politely.
         response_format: { type: 'json_object' },
-        temperature: 0,
+        ...(IS_REASONING_FAMILY ? {} : { temperature: 0 }),
         // Bounds generation time (Vercel's ceiling, see contracts.ts) and
         // cost (N2/O2) — a hard backstop, not the expected typical length.
-        max_tokens: maxOutputTokens,
+        ...(IS_REASONING_FAMILY
+          ? { max_completion_tokens: maxOutputTokens }
+          : { max_tokens: maxOutputTokens }),
       }),
       signal,
     },
