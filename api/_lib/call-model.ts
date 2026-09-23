@@ -130,6 +130,9 @@ async function attempt<T>(
 
     if (!response.ok) {
       const kind = response.status >= 400 && response.status < 500 ? 'refused' : 'transport';
+      const bodyText = await response.text().catch(() => '<unreadable body>');
+      // Server-side only (Vercel function logs) — never rendered to the student.
+      console.error(`OpenRouter request failed: ${response.status} ${bodyText}`);
       return { ok: false, error: { kind, status: response.status } };
     }
 
