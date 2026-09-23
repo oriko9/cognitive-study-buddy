@@ -26,12 +26,15 @@ import { stripJsonFence } from '../../src/lib/schema.js';
 
 /**
  * An explicit id. A moving alias makes behaviour unreproducible.
- * Paid, not free-tier (O2, framing.md N8) — the :free variant returned a 404
- * ("unavailable for free") in production. ~$0.02/M input, $0.04/M output
- * tokens at the time this was pinned. Bounded by a per-key credit limit set
- * on the OpenRouter account, not by anything in this codebase (N11).
+ * Paid (O2, framing.md N8), bounded by a per-key credit limit set on the
+ * OpenRouter account, not by anything in this codebase (N11). Chosen over
+ * openai/gpt-5-nano: gpt-oss-20b is cheaper (~$0.018/M input, $0.09/M
+ * output vs. ~$0.05/$0.40) and, being open-weight, is served by 12
+ * providers on OpenRouter with built-in failover — a single proprietary
+ * source is exactly the fragility this project has been fixing away from
+ * (Gemini's rate limit, then the llama :free 404).
  */
-export const MODEL_ID = 'meta-llama/llama-3.1-8b-instruct';
+export const MODEL_ID = 'openai/gpt-oss-20b';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
