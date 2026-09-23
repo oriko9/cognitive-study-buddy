@@ -24,8 +24,14 @@ import {
 } from '../../src/lib/contracts.js';
 import { stripJsonFence } from '../../src/lib/schema.js';
 
-/** An explicit id. A moving alias makes behaviour unreproducible. */
-export const MODEL_ID = 'meta-llama/llama-3.1-8b-instruct:free';
+/**
+ * An explicit id. A moving alias makes behaviour unreproducible.
+ * Paid, not free-tier (O2, framing.md N8) — the :free variant returned a 404
+ * ("unavailable for free") in production. ~$0.02/M input, $0.04/M output
+ * tokens at the time this was pinned. Bounded by a per-key credit limit set
+ * on the OpenRouter account, not by anything in this codebase (N11).
+ */
+export const MODEL_ID = 'meta-llama/llama-3.1-8b-instruct';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
