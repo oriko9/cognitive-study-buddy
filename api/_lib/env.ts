@@ -9,7 +9,7 @@ import type { Result } from '../../src/lib/contracts.js';
 
 export type EnvSource = Readonly<Record<string, string | undefined>>;
 
-export const SERVER_KEY = 'OPENROUTER_API_KEY';
+export const SERVER_KEY = 'GEMINI_API_KEY';
 
 /**
  * Vite inlines every VITE_-prefixed variable into the client bundle, so a

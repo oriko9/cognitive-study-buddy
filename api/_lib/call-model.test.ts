@@ -23,13 +23,13 @@ const parseEcho = (raw: unknown): Result<{ value: string }> => {
 };
 
 function providerResponse(text: string, status = 200): Response {
-  return new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
+  return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), {
     status,
     headers: { 'content-type': 'application/json' },
   });
 }
 
-const input = { systemInstruction: 'sys', userText: 'user', parse: parseEcho, maxOutputTokens: 500 };
+const input = { systemInstruction: 'sys', userText: 'user', parse: parseEcho };
 const deps = (fetchImpl: typeof fetch) => ({ apiKey: 'test-key-not-real', fetchImpl });
 
 beforeEach(() => {
@@ -40,56 +40,34 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('buildRequest', () => {
-  it('sends the key in the Authorization bearer header', () => {
-    const { init } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal, 500);
+describe('buildRequest — N9, N8', () => {
+  it('sends the key in the x-goog-api-key header', () => {
+    const { init } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal);
 
     const headers = init.headers as Record<string, string>;
-    expect(headers['authorization']).toBe('Bearer test-key-not-real');
+    expect(headers['x-goog-api-key']).toBe('test-key-not-real');
   });
 
   it('never puts the key in the query string', () => {
-    const { url } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal, 500);
+    const { url } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal);
 
     expect(url).not.toContain('key=');
     expect(url).not.toContain('test-key-not-real');
   });
 
-  it('pins an explicit model id with no moving alias', () => {
-    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 500);
+  it('pins an explicit model version with no moving alias', () => {
+    const { url } = buildRequest('sys', 'user', 'k', new AbortController().signal);
 
-    if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
-    const body = JSON.parse(init.body) as { model: string };
-    expect(body.model).toBe(MODEL_ID);
+    expect(url).toContain(MODEL_ID);
     expect(MODEL_ID).not.toContain('-' + 'latest');
   });
 
   it('demands JSON at the API level rather than only in the prompt', () => {
-    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 500);
+    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal);
 
     if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
-    const body = JSON.parse(init.body) as { response_format: { type: string } };
-    expect(body.response_format.type).toBe('json_object');
-  });
-
-  it('caps output length with the caller-supplied bound, not a shared default', () => {
-    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 777);
-
-    if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
-    // The pinned model is in OpenAI's GPT-5 reasoning family, which rejects
-    // `max_tokens` and requires `max_completion_tokens` instead.
-    const body = JSON.parse(init.body) as { max_completion_tokens: number };
-    expect(body.max_completion_tokens).toBe(777);
-  });
-
-  it('omits temperature and uses max_completion_tokens for the GPT-5 reasoning family', () => {
-    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 500);
-
-    if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
-    const body = JSON.parse(init.body) as Record<string, unknown>;
-    expect(body['temperature']).toBeUndefined();
-    expect(body['max_tokens']).toBeUndefined();
-    expect(body['max_completion_tokens']).toBe(500);
+    const body = JSON.parse(init.body) as { generationConfig: { responseMimeType: string } };
+    expect(body.generationConfig.responseMimeType).toBe('application/json');
   });
 });
 
@@ -223,22 +201,22 @@ describe('callModel — N6', () => {
 
 describe('readServerEnv — N1', () => {
   it('returns the key when it is present server-side', () => {
-    const result = readServerEnv({ OPENROUTER_API_KEY: 'server-side-key' });
+    const result = readServerEnv({ GEMINI_API_KEY: 'server-side-key' });
 
     expect(result).toEqual({ ok: true, data: { apiKey: 'server-side-key' } });
   });
 
   it('rejects a VITE_-prefixed key, which Vite would inline into the bundle', () => {
-    const result = readServerEnv({ VITE_OPENROUTER_API_KEY: 'leaked-key' });
+    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'leaked-key' });
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
-    expect(result.error).toContain('VITE_OPENROUTER_API_KEY');
+    expect(result.error).toContain('VITE_GEMINI_API_KEY');
     expect(result.error).toContain('client bundle');
   });
 
   it('never echoes the secret value back in the error', () => {
-    const result = readServerEnv({ VITE_OPENROUTER_API_KEY: 'leaked-value-here' });
+    const result = readServerEnv({ VITE_GEMINI_API_KEY: 'leaked-value-here' });
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
@@ -247,7 +225,7 @@ describe('readServerEnv — N1', () => {
 
   it('rejects the prefixed key even when the correct one is also set', () => {
     expect(
-      readServerEnv({ OPENROUTER_API_KEY: 'ok-key', VITE_OPENROUTER_API_KEY: 'leaked-key' }).ok,
+      readServerEnv({ GEMINI_API_KEY: 'ok-key', VITE_GEMINI_API_KEY: 'leaked-key' }).ok,
     ).toBe(false);
   });
 
@@ -256,6 +234,6 @@ describe('readServerEnv — N1', () => {
 
     expect(result.ok).toBe(false);
     if (result.ok) throw new Error('expected a failure');
-    expect(result.error).toContain('OPENROUTER_API_KEY');
+    expect(result.error).toContain('GEMINI_API_KEY');
   });
 });

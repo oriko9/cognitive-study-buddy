@@ -3,12 +3,9 @@
  * can be swapped in one file (CLAUDE.md §4.2) and so the call counter N2 demands
  * cannot be bypassed by a second code path.
  *
- * Provider: OpenRouter (chat-completions, OpenAI-shaped request/response).
- * specs/specification.md §3.5 and framing.md N8/N9 still describe the prior
- * Gemini contract and have not been updated to match — that spec drift is a
- * known gap from this change, not an oversight to hide.
- *   - key in the Authorization: Bearer header, never a query parameter
- *   - model pinned to an explicit id, never a moving alias
+ * Contract: specs/specification.md §3.5.
+ *   - key in the x-goog-api-key header, never ?key= (N9)
+ *   - model pinned to an explicit version, never a moving alias (N8)
  *   - deterministic validation supplied by the caller (N5, CLAUDE.md §4.3)
  *   - retry exactly once, and only for timeout or malformed (N5)
  *   - bounded per attempt and in total (N6)
@@ -24,18 +21,10 @@ import {
 } from '../../src/lib/contracts.js';
 import { stripJsonFence } from '../../src/lib/schema.js';
 
-/**
- * An explicit id. A moving alias makes behaviour unreproducible.
- * Paid (O2, framing.md N8), bounded by a per-key credit limit set on the
- * OpenRouter account, not by anything in this codebase (N11). Moved from
- * gpt-oss-20b for latency (Turn 7) — the tradeoff being gpt-5-nano is
- * OpenAI-proprietary, a single-provider dependency on OpenRouter rather
- * than gpt-oss-20b's 12-provider failover, and costs more per token
- * (~$0.05/M input, $0.40/M output vs. ~$0.018/$0.09).
- */
-export const MODEL_ID = 'openai/gpt-5-nano';
+/** N8: an explicit version. A moving alias makes behaviour unreproducible. */
+export const MODEL_ID = 'models/gemini-3.1-flash-lite';
 
-const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/${MODEL_ID}:generateContent`;
 
 // N2's accounting lives here because this is the only place every call passes
 // through. Attempts are counted, so a retry is visible to the assertion.
@@ -51,10 +40,6 @@ export type CallModelInput<T> = {
   systemInstruction: string;
   userText: string;
   parse: (raw: unknown) => Result<T>;
-  // Required, not defaulted here: the two call sites need very different
-  // ceilings (generate's 15 topics + a question vs. evaluate's one score and
-  // one sentence), and a shared silent default risks truncating one of them.
-  maxOutputTokens: number;
 };
 
 export type CallModelDeps = {
@@ -63,43 +48,26 @@ export type CallModelDeps = {
   now?: () => number;
 };
 
-// OpenAI's GPT-5 family (reasoning models) rejects two parameters every
-// other model here has accepted: a non-default `temperature` fails outright
-// ("reasoning models don't support sampling parameters"), and `max_tokens`
-// must be sent as `max_completion_tokens` instead. Documented across many
-// independent OpenAI-API clients hitting the same change, not a guess.
-const IS_REASONING_FAMILY = MODEL_ID.startsWith('openai/gpt-5');
-
 export function buildRequest(
   systemInstruction: string,
   userText: string,
   apiKey: string,
   signal: AbortSignal,
-  maxOutputTokens: number,
 ): { url: string; init: RequestInit } {
   return {
     url: ENDPOINT,
     init: {
       method: 'POST',
       headers: {
-        // Bearer token in the header. The key appears nowhere in the URL.
-        authorization: `Bearer ${apiKey}`,
+        // N9: the header form. The ?key= query form appears nowhere.
+        'x-goog-api-key': apiKey,
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: MODEL_ID,
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: userText },
-        ],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: [{ role: 'user', parts: [{ text: userText }] }],
         // Constrain the shape at the API level, not only by asking politely.
-        response_format: { type: 'json_object' },
-        ...(IS_REASONING_FAMILY ? {} : { temperature: 0 }),
-        // Bounds generation time (Vercel's ceiling, see contracts.ts) and
-        // cost (N2/O2) — a hard backstop, not the expected typical length.
-        ...(IS_REASONING_FAMILY
-          ? { max_completion_tokens: maxOutputTokens }
-          : { max_tokens: maxOutputTokens }),
+        generationConfig: { responseMimeType: 'application/json', temperature: 0 },
       }),
       signal,
     },
@@ -110,23 +78,33 @@ function extractText(payload: unknown): Result<string> {
   if (typeof payload !== 'object' || payload === null) {
     return { ok: false, error: 'provider response was not an object' };
   }
-  const choices = (payload as Record<string, unknown>)['choices'];
-  if (!Array.isArray(choices) || choices.length === 0) {
-    return { ok: false, error: 'provider response contained no choices' };
+  const candidates = (payload as Record<string, unknown>)['candidates'];
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    return { ok: false, error: 'provider response contained no candidates' };
   }
-  const first: unknown = choices[0];
+  const first: unknown = candidates[0];
   if (typeof first !== 'object' || first === null) {
-    return { ok: false, error: 'choice was not an object' };
+    return { ok: false, error: 'candidate was not an object' };
   }
-  const message = (first as Record<string, unknown>)['message'];
-  if (typeof message !== 'object' || message === null) {
-    return { ok: false, error: 'choice contained no message' };
+  const content = (first as Record<string, unknown>)['content'];
+  if (typeof content !== 'object' || content === null) {
+    return { ok: false, error: 'candidate contained no content' };
   }
-  const content = (message as Record<string, unknown>)['content'];
-  if (typeof content !== 'string' || content.trim() === '') {
-    return { ok: false, error: 'message contained no content' };
+  const parts = (content as Record<string, unknown>)['parts'];
+  if (!Array.isArray(parts) || parts.length === 0) {
+    return { ok: false, error: 'content contained no parts' };
   }
-  return { ok: true, data: content };
+  const text = parts
+    .map((part) =>
+      typeof part === 'object' && part !== null && 'text' in part
+        ? typeof (part as { text: unknown }).text === 'string'
+          ? (part as { text: string }).text
+          : ''
+        : '',
+    )
+    .join('');
+  if (text.trim() === '') return { ok: false, error: 'provider returned empty text' };
+  return { ok: true, data: text };
 }
 
 type AttemptOutcome<T> = { ok: true; data: T } | { ok: false; error: ModelFailure };
@@ -150,15 +128,11 @@ async function attempt<T>(
       input.userText,
       deps.apiKey,
       controller.signal,
-      input.maxOutputTokens,
     );
     const response = await deps.fetchImpl(url, init);
 
     if (!response.ok) {
       const kind = response.status >= 400 && response.status < 500 ? 'refused' : 'transport';
-      const bodyText = await response.text().catch(() => '<unreadable body>');
-      // Server-side only (Vercel function logs) — never rendered to the student.
-      console.error(`OpenRouter request failed: ${response.status} ${bodyText}`);
       return { ok: false, error: { kind, status: response.status } };
     }
 

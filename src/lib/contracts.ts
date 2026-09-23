@@ -44,13 +44,8 @@ export const MAX_TITLE_CHARS = 120;
 export const MAX_PROMPT_CHARS = 500;
 export const MAX_ANSWER_CHARS = 4_000;
 export const MAX_JUSTIFICATION_CHARS = 300;
-// Vercel's Hobby plan defaults every function to a 10s wall-clock ceiling
-// (no vercel.json here overrides it) and kills the invocation ungracefully —
-// no JSON body, just a platform-level 504 — if it's still running then. The
-// budget below must leave headroom under that for request/response overhead,
-// and must hold even when N5's retry fires (two attempts inside one budget).
-export const REQUEST_TIMEOUT_MS = 4_000;
-export const TOTAL_BUDGET_MS = 8_000;
+export const REQUEST_TIMEOUT_MS = 20_000;
+export const TOTAL_BUDGET_MS = 45_000;
 export const STORAGE_KEY = 'csb.cycles.v1';
 export const STORAGE_VERSION = 1;
 /** Ceiling on stored timestamps, so a hand-written array cannot grow without bound. */

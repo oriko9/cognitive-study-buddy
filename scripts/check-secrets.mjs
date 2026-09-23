@@ -29,23 +29,20 @@ import { join } from 'node:path';
 const DIST = 'dist';
 
 const KEY_FORMATS = [
-  // Both Gemini formats, always. Scanning only for AIza is the failure this
-  // gate exists to prevent: the key this project used to hold starts with AQ.
+  // Both formats, always. Scanning only for AIza is the failure this gate
+  // exists to prevent: the key this project holds starts with AQ.
   { name: 'legacy AIza-format provider key', re: /AIza[0-9A-Za-z_-]{15,}/ },
   { name: 'current AQ.-format provider key', re: /AQ\.[0-9A-Za-z_-]{15,}/ },
-  { name: 'OpenRouter provider key', re: /sk-or-v1-[0-9a-fA-F]{20,}/ },
 ];
 
 const DIST_PATTERNS = [
   ...KEY_FORMATS,
   { name: 'literal GEMINI_API_KEY in a client bundle', re: /GEMINI_API_KEY/ },
-  { name: 'literal OPENROUTER_API_KEY in a client bundle', re: /OPENROUTER_API_KEY/ },
 ];
 
 const TRACKED_PATTERNS = [
   ...KEY_FORMATS,
   { name: 'GEMINI_API_KEY assigned a value', re: /GEMINI_API_KEY[ \t]*=[ \t]*\S+/ },
-  { name: 'OPENROUTER_API_KEY assigned a value', re: /OPENROUTER_API_KEY[ \t]*=[ \t]*\S+/ },
 ];
 
 function walk(dir) {

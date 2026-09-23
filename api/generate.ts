@@ -63,12 +63,6 @@ export default async function handler(
       systemInstruction: generateSystemInstruction(body.data.pageCount),
       userText: body.data.text,
       parse: (raw) => parseGenerateResponse(raw, body.data.pageCount),
-      // Up to 15 topics (D3) at 120 chars each (MAX_TITLE_CHARS) plus a
-      // 500-char question (MAX_PROMPT_CHARS) plus JSON overhead — sized with
-      // headroom for Hebrew (D9), which tokenizes less efficiently than
-      // English. This is a backstop against runaway generation, not the
-      // typical length.
-      maxOutputTokens: 2_000,
     },
     { apiKey: env.data.apiKey },
   );

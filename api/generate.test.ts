@@ -26,15 +26,15 @@ function req(body: unknown, method = 'POST'): VercelRequest {
   return { method, body } as unknown as VercelRequest;
 }
 
-const ORIGINAL_KEY = process.env['OPENROUTER_API_KEY'];
+const ORIGINAL_KEY = process.env['GEMINI_API_KEY'];
 
 beforeEach(() => {
-  process.env['OPENROUTER_API_KEY'] = 'server-side-key-for-tests';
+  process.env['GEMINI_API_KEY'] = 'server-side-key-for-tests';
 });
 
 afterEach(() => {
-  if (ORIGINAL_KEY === undefined) delete process.env['OPENROUTER_API_KEY'];
-  else process.env['OPENROUTER_API_KEY'] = ORIGINAL_KEY;
+  if (ORIGINAL_KEY === undefined) delete process.env['GEMINI_API_KEY'];
+  else process.env['GEMINI_API_KEY'] = ORIGINAL_KEY;
   vi.restoreAllMocks();
 });
 
@@ -88,7 +88,7 @@ describe('POST /api/generate — request validation happens before any model cal
   });
 
   it('reports a misconfigured server without leaking why', async () => {
-    delete process.env['OPENROUTER_API_KEY'];
+    delete process.env['GEMINI_API_KEY'];
     const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const response = res();
 
