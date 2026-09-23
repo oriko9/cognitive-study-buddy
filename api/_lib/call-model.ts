@@ -49,6 +49,10 @@ export type CallModelInput<T> = {
   systemInstruction: string;
   userText: string;
   parse: (raw: unknown) => Result<T>;
+  // Required, not defaulted here: the two call sites need very different
+  // ceilings (generate's 15 topics + a question vs. evaluate's one score and
+  // one sentence), and a shared silent default risks truncating one of them.
+  maxOutputTokens: number;
 };
 
 export type CallModelDeps = {
@@ -62,6 +66,7 @@ export function buildRequest(
   userText: string,
   apiKey: string,
   signal: AbortSignal,
+  maxOutputTokens: number,
 ): { url: string; init: RequestInit } {
   return {
     url: ENDPOINT,
@@ -81,6 +86,9 @@ export function buildRequest(
         // Constrain the shape at the API level, not only by asking politely.
         response_format: { type: 'json_object' },
         temperature: 0,
+        // Bounds generation time (Vercel's ceiling, see contracts.ts) and
+        // cost (N2/O2) — a hard backstop, not the expected typical length.
+        max_tokens: maxOutputTokens,
       }),
       signal,
     },
@@ -131,6 +139,7 @@ async function attempt<T>(
       input.userText,
       deps.apiKey,
       controller.signal,
+      input.maxOutputTokens,
     );
     const response = await deps.fetchImpl(url, init);
 

@@ -73,6 +73,10 @@ export default async function handler(
       userText,
       // The model is never trusted to echo the topic id back correctly.
       parse: (raw) => parseEvaluateResponse(raw, body.data.topicId),
+      // A score, a topic id, and a justification up to 300 chars
+      // (MAX_JUSTIFICATION_CHARS) plus JSON overhead — far smaller than
+      // generate's ceiling, so a much faster hard backstop here.
+      maxOutputTokens: 300,
     },
     { apiKey: env.data.apiKey },
   );

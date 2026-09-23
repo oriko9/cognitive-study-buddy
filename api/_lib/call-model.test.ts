@@ -29,7 +29,7 @@ function providerResponse(text: string, status = 200): Response {
   });
 }
 
-const input = { systemInstruction: 'sys', userText: 'user', parse: parseEcho };
+const input = { systemInstruction: 'sys', userText: 'user', parse: parseEcho, maxOutputTokens: 500 };
 const deps = (fetchImpl: typeof fetch) => ({ apiKey: 'test-key-not-real', fetchImpl });
 
 beforeEach(() => {
@@ -42,21 +42,21 @@ afterEach(() => {
 
 describe('buildRequest', () => {
   it('sends the key in the Authorization bearer header', () => {
-    const { init } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal);
+    const { init } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal, 500);
 
     const headers = init.headers as Record<string, string>;
     expect(headers['authorization']).toBe('Bearer test-key-not-real');
   });
 
   it('never puts the key in the query string', () => {
-    const { url } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal);
+    const { url } = buildRequest('sys', 'user', 'test-key-not-real', new AbortController().signal, 500);
 
     expect(url).not.toContain('key=');
     expect(url).not.toContain('test-key-not-real');
   });
 
   it('pins an explicit model id with no moving alias', () => {
-    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal);
+    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 500);
 
     if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
     const body = JSON.parse(init.body) as { model: string };
@@ -65,11 +65,19 @@ describe('buildRequest', () => {
   });
 
   it('demands JSON at the API level rather than only in the prompt', () => {
-    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal);
+    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 500);
 
     if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
     const body = JSON.parse(init.body) as { response_format: { type: string } };
     expect(body.response_format.type).toBe('json_object');
+  });
+
+  it('caps output length with the caller-supplied bound, not a shared default', () => {
+    const { init } = buildRequest('sys', 'user', 'k', new AbortController().signal, 777);
+
+    if (typeof init.body !== 'string') throw new Error('body should be a JSON string');
+    const body = JSON.parse(init.body) as { max_tokens: number };
+    expect(body.max_tokens).toBe(777);
   });
 });
 
